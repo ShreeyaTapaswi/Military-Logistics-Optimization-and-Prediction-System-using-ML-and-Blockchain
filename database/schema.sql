@@ -2,7 +2,6 @@
 --  MLOPS — Military Logistics Optimization & Prediction System
 --  MySQL Database Schema v2.0
 --  Group G4 | PICT | Dept. of Computer Engineering | 2025-26
---  Guide: Prof. Shweta Shah
 -- ============================================================
 --  STRUCTURE:
 --  PART A — Core Tables      (from approved ER diagram)
