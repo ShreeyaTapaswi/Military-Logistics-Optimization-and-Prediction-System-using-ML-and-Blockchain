@@ -68,19 +68,34 @@ Full dependency list:
 
 ---
 
-## Step 4 — Configure MySQL
+## Step 4 — Import Database Schema
 
-Ensure your MySQL server is running and the database exists:
+Import the new `mlops_db` schema (creates database, all tables, views, and seed data):
 
-```sql
--- In MySQL client:
-CREATE DATABASE IF NOT EXISTS military_vehicle_health
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+```bash
+mysql -u root -p < database\schema.sql
 ```
 
-Update the `DB_CONFIG` block in all pipeline scripts with your credentials.  
-See the [Database Integration Guide](./db-integration.md) for the full list of files to update.
+Or from inside the MySQL shell:
+
+```sql
+SOURCE /full/path/to/database/schema.sql;
+```
+
+Update the `DB_CONFIG` block in all pipeline scripts:  
+
+```python
+DB_CONFIG = {
+    'host':     'localhost',
+    'port':     3306,
+    'database': 'mlops_db',
+    'user':     'root',
+    'password': 'YOUR_PASSWORD',
+    'charset':  'utf8mb4',
+}
+```
+
+See [Database README](../database/README%20database.md) for the full setup and column mapping guide.
 
 ---
 
@@ -88,10 +103,11 @@ See the [Database Integration Guide](./db-integration.md) for the full list of f
 
 If you are connecting to a **real Army vehicle telemetry database** (not synthetic data):
 
-1. Update credentials across all 11 files (see [db-integration.md](./db-integration.md))
-2. Verify schema alignment against [database-schema.md](./database-schema.md)
-3. Run `assign_vehicle_status.py` once to add health labels
-4. Execute the pipeline
+1. Import schema: `mysql -u root -p < database\schema.sql`
+2. Update `DB_CONFIG` credentials in all ML pipeline scripts (use `mlops_db` as database name)
+3. Verify schema alignment against [Database README](../database/README%20database.md)
+4. Run `assign_vehicle_status.py` once to add health labels
+5. Execute the pipeline
 
 ---
 
@@ -119,4 +135,4 @@ Or run each step individually with detailed logging — see [quick-reference.md]
 
 ---
 
-> 🔙 [Back to README](../README.md) | ⚡ [Quick Reference](./quick-reference.md)
+> 🔙 [Back to README](../README.md) | ⚡ [Quick Reference](./quick-reference.md) | 🗄️ [Database README](../database/README%20database.md)

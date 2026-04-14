@@ -17,11 +17,18 @@ This module contains the complete MySQL database schema for MLOPS, designed from
 |---|---|
 | `Admin` | System users — Super Admin & Base Admin |
 | `Vehicle` | Core military vehicle registry |
-| `HealthScoreRecord` | ML-generated failure probability & risk scores |
-| `MaintenanceRecord` | All service/repair events per vehicle |
-| `SpareParts` | Spare parts inventory linked to vehicles/maintenance |
-| `TamperProofRecord` | Blockchain anchor table — hash of every critical record |
-| `AuditLog` | Immutable trail of every user action |
+| `health_score_record` | ML-generated failure probability & risk scores (ER entity) |
+| `maintainance_record` | All service/repair events per vehicle |
+| `spare_parts` | Spare parts inventory linked to vehicles/maintenance |
+| `tamper_proof_record` | Blockchain anchor table — hash of every critical record |
+| `audit_log` | Immutable trail of every user action |
+| `vehicle_telemetry` | Periodic OBD/sensor readings per vehicle |
+| `operational_log` | Mission and trip records per vehicle |
+| `diagnostic_code` | Fault/DTC codes detected per vehicle |
+| `fuel_record` | Refuelling events and efficiency tracking |
+| `health_scores` | ML pipeline output — written by `run_inference.py` |
+
+---
 
 ## Views
 
@@ -29,30 +36,28 @@ This module contains the complete MySQL database schema for MLOPS, designed from
 |---|---|
 | `v_fleet_health_summary` | Latest health score per vehicle — used by dashboard |
 | `v_high_risk_vehicles` | Filters High / Critical risk vehicles for alert panel |
-| `v_maintenance_with_admin` | Maintenance history with technician names |
-
-## Stored Procedure
-
-`sp_get_vehicle_profile(vehicle_id)` — Returns full profile: vehicle info, latest health score, last 5 maintenance events, spare parts.
+| `v_maintenance_full` | Maintenance history with technician names & ranks |
+| `v_active_faults` | All currently active diagnostic fault codes |
+| `v_ml_telemetry_input` | Maps `vehicle_telemetry` columns to ML pipeline expected names |
 
 ---
 
 ## Setup Instructions
 
 ### Prerequisites
-- MySQL 8.0+ (antigravity / local)
-- Python 3.9+ with `mysqlclient` or `PyMySQL` for Django ORM
+- MySQL 8.0+ (local or cloud)
+- Python 3.10+ with `pymysql`
 
 ### Step 1 — Import the schema
 
 ```bash
-mysql -u root -p < mlops_schema.sql
+mysql -u root -p < database/schema.sql
 ```
 
 Or inside MySQL shell:
 
 ```sql
-SOURCE /path/to/mlops_schema.sql;
+SOURCE /path/to/database/schema.sql;
 ```
 
 ### Step 2 — Verify tables
@@ -62,33 +67,26 @@ USE mlops_db;
 SHOW TABLES;
 ```
 
-Expected output:
-```
-Admin
-AuditLog
-HealthScoreRecord
-MaintenanceRecord
-SpareParts
-TamperProofRecord
-Vehicle
-```
+### Step 3 — Environment Setup
 
-### Step 3 — Connect Django (settings.py)
+The ML Pipeline and Backend rely on `.env` files for secure access. Ensure you have copied `.env.example` to `.env` in the root folder and configured your `DB_PASSWORD`.
 
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mlops_db',
-        'USER': 'root',
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        }
-    }
-}
+### Step 4 — Run ML Pipeline
+
+The pipeline reads from `vehicle_telemetry` (via `v_ml_telemetry_input` view) and writes results to `health_scores`.
+
+```powershell
+# Full pipeline:
+.\run_pipeline.ps1
+
+# Or step-by-step:
+python Army_ML_Pipeline_and_Files\assign_vehicle_status.py
+python Army_ML_Pipeline_and_Files\feature_engineering.py
+python Army_ML_Pipeline_and_Files\temporal_model.py
+python Army_ML_Pipeline_and_Files\train_health_model.py
+python Army_ML_Pipeline_and_Files\optimize_ensemble.py
+python Army_ML_Pipeline_and_Files\evaluate_ensemble.py
+python Army_ML_Pipeline_and_Files\run_inference.py
 ```
 
 ---
@@ -96,26 +94,24 @@ DATABASES = {
 ## ER Diagram Mapping
 
 ```
-Vehicle  ──generates──▶  HealthScoreRecord
-Vehicle  ──has──────────▶ MaintenanceRecord
-Vehicle  ──have─────────▶ SpareParts
-HealthScoreRecord  ──stored_in──▶ TamperProofRecord
-MaintenanceRecord  ──stored_in──▶ TamperProofRecord
-SpareParts         ──stored_in──▶ TamperProofRecord
-Admin    ──verifies──────▶ TamperProofRecord
-Admin    ──logs──────────▶ AuditLog
+Vehicle  ──generates──▶  health_score_record
+Vehicle  ──has──────────▶ maintainance_record
+Vehicle  ──have─────────▶ spare_parts
+health_score_record  ──stored_in──▶ tamper_proof_record
+maintainance_record  ──stored_in──▶ tamper_proof_record
+spare_parts          ──stored_in──▶ tamper_proof_record
+Admin    ──verifies──────▶ tamper_proof_record
+Admin    ──logs──────────▶ audit_log
 ```
 
 ---
 
-## Risk Category Logic (auto-computed column)
+## Database Config
 
-| Range | Category |
+| Field | Value |
 |---|---|
-| 0.00 – 0.39 | 🟢 Low |
-| 0.40 – 0.69 | 🟡 Medium |
-| 0.70 – 0.89 | 🔴 High |
-| 0.90 – 1.00 | 🚨 Critical |
+| Database | `mlops_db` |
+| Engine | MySQL 8.0+ · utf8mb4 · InnoDB |
+| Schema Version | v2.0 |
 
----
-
+> 🔙 [Back to README](../README.md)

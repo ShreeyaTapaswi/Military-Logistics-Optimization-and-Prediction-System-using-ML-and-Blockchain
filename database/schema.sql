@@ -11,7 +11,8 @@
 --  PART E — Seed Data
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS mlops_db
+DROP DATABASE IF EXISTS mlops_db;
+CREATE DATABASE mlops_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 USE mlops_db;
@@ -27,7 +28,7 @@ CREATE TABLE Admin (
     f_name        VARCHAR(50)  NOT NULL,
     l_name        VARCHAR(50)  NOT NULL,
     phone_no      VARCHAR(15)  NOT NULL UNIQUE,
-    rank          VARCHAR(50)  NOT NULL,
+    `rank`        VARCHAR(50)  NOT NULL,
     role          ENUM('super_admin','base_admin') NOT NULL DEFAULT 'base_admin',
     username      VARCHAR(50)  NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -47,7 +48,7 @@ CREATE TABLE Vehicle (
     type               VARCHAR(50)  NOT NULL,
     model              VARCHAR(100) NOT NULL,
     manufacture_date   DATE         NOT NULL,
-    vehicle_age        INT GENERATED ALWAYS AS (YEAR(CURDATE()) - YEAR(manufacture_date)) STORED,
+    vehicle_age        INT NULL COMMENT 'Not populated; computed at runtime / view',
     city               VARCHAR(100) NOT NULL,
     state              VARCHAR(100) NOT NULL,
     pincode            VARCHAR(10)  NOT NULL,
@@ -93,6 +94,7 @@ CREATE TABLE maintainance_record (
     PRIMARY KEY (record_id),
     FOREIGN KEY (vehicle_id)    REFERENCES Vehicle(vehicle_id) ON UPDATE CASCADE,
     FOREIGN KEY (technician_id) REFERENCES Admin(user_id)      ON UPDATE CASCADE
+
 ) ENGINE=InnoDB COMMENT='All service and repair events per vehicle';
 
 
@@ -351,7 +353,7 @@ SELECT
     m.duration_hours,
     m.vehicle_status,
     CONCAT(a.f_name,' ',a.l_name) AS technician_name,
-    a.rank AS technician_rank
+    a.`rank` AS technician_rank
 FROM maintainance_record m
 JOIN Vehicle v ON v.vehicle_id = m.vehicle_id
 JOIN Admin   a ON a.user_id    = m.technician_id;
@@ -399,7 +401,7 @@ FROM vehicle_telemetry t;
 --  PART E: SEED DATA
 -- ============================================================
 
-INSERT INTO Admin (user_id, f_name, l_name, phone_no, rank, role, username, password_hash) VALUES
+INSERT INTO Admin (user_id, f_name, l_name, phone_no, `rank`, role, username, password_hash) VALUES
 ('ADM001','Arjun',  'Sharma','9876543210','Colonel',   'super_admin','arjun.sharma',SHA2('Admin@1234',256)),
 ('ADM002','Priya',  'Patil', '9876543211','Captain',   'base_admin', 'priya.patil', SHA2('Base@5678', 256)),
 ('ADM003','Rohan',  'Verma', '9876543212','Lieutenant','base_admin', 'rohan.verma', SHA2('Base@9012', 256));

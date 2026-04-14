@@ -2,7 +2,7 @@
 ============================================================
 STEP 1: assign_vehicle_status.py
 ============================================================
-Adds `vehicle_status` column to maintenance_records and assigns
+Adds `vehicle_status` column to maintainance_record and assigns
 5 ordinal class labels derived from ACTUAL OUTCOMES:
     service_type + DTC severity (with temporal decay weighting)
 
@@ -31,9 +31,9 @@ if hasattr(sys.stdout, 'reconfigure'):
 DB_CONFIG = {
     'host':     'localhost',
     'port':     3306,
-    'database': 'military_vehicle_health',
+    'database': 'mlops_db',
     'user':     'root',
-    'password': 'vedant@14',
+    'password': 'shreeya@2026',
     'charset':  'utf8mb4',
 }
 
@@ -104,10 +104,10 @@ def main():
     print("=" * 60)
 
     # 1. Add column
-    print("\n[1/5] Adding vehicle_status column to maintenance_records...")
+    print("\n[1/5] Adding vehicle_status column to maintainance_record...")
     try:
         cursor.execute(
-            "ALTER TABLE maintenance_records "
+            "ALTER TABLE maintainance_record "
             "ADD COLUMN vehicle_status VARCHAR(20) DEFAULT NULL"
         )
         conn.commit()
@@ -115,7 +115,7 @@ def main():
     except mysql.connector.Error as e:
         if 'Duplicate column' in str(e):
             print("      Column already exists — resetting values.")
-            cursor.execute("UPDATE maintenance_records SET vehicle_status = NULL")
+            cursor.execute("UPDATE maintainance_record SET vehicle_status = NULL")
             conn.commit()
         else:
             raise
@@ -123,8 +123,8 @@ def main():
     # 2. Load maintenance records
     print("\n[2/5] Loading maintenance records...")
     cursor.execute("""
-        SELECT maintenance_id, vehicle_id, service_date, service_type
-        FROM   maintenance_records
+        SELECT record_id, vehicle_id, service_date, service_type
+        FROM   maintainance_record
         ORDER BY vehicle_id, service_date
     """)
     records = cursor.fetchall()
@@ -133,8 +133,8 @@ def main():
     # 3. Load all DTC data
     print("\n[3/5] Loading diagnostic codes...")
     cursor.execute("""
-        SELECT vehicle_id, severity, detected_timestamp, resolved_timestamp
-        FROM   diagnostic_codes
+        SELECT vehicle_id, severity, detected_at, resolved_at
+        FROM   diagnostic_code
     """)
     dtcs_raw = cursor.fetchall()
 
@@ -148,7 +148,7 @@ def main():
     print("\n[4/5] Computing recency corrective counts...")
     cursor.execute("""
         SELECT vehicle_id, service_date, service_type
-        FROM   maintenance_records
+        FROM   maintainance_record
         WHERE  service_type = 'corrective'
         ORDER BY vehicle_id, service_date
     """)
@@ -163,7 +163,7 @@ def main():
 
     # 5. Compute health scores, then bucket into quintiles
     print("\n[5/5] Computing health scores and assigning labels...")
-    scored = []   # (health_score, maintenance_id)
+    scored = []   # (health_score, record_id)
 
     for rec in records:
         vid      = rec['vehicle_id']
@@ -180,8 +180,8 @@ def main():
         for d in dtcs:
             s = temporal_severity_score(
                 d['severity'],
-                d['detected_timestamp'],
-                d['resolved_timestamp'],
+                d['detected_at'],
+                d['resolved_at'],
                 today
             )
             total_dtc_score += s
@@ -199,7 +199,7 @@ def main():
         h = compute_health_score(
             svc_type, max_temporal_rank, major_count, total_dtc_score, recent_corrective
         )
-        scored.append((h, rec['maintenance_id']))
+        scored.append((h, rec['record_id']))
 
     # Quintile bucketing by exact index
     # Sort ascending by health_score. Ties are arbitrarily broken by original order.
@@ -222,7 +222,7 @@ def main():
 
     # Batch update
     cursor.executemany(
-        "UPDATE maintenance_records SET vehicle_status=%s WHERE maintenance_id=%s",
+        "UPDATE maintainance_record SET vehicle_status=%s WHERE record_id=%s",
         updates
     )
     conn.commit()
@@ -235,8 +235,8 @@ def main():
     cursor.execute("""
         SELECT vehicle_status,
                COUNT(*) AS cnt,
-               ROUND(COUNT(*)*100.0/(SELECT COUNT(*) FROM maintenance_records), 2) AS pct
-        FROM   maintenance_records
+               ROUND(COUNT(*)*100.0/(SELECT COUNT(*) FROM maintainance_record), 2) AS pct
+        FROM   maintainance_record
         GROUP BY vehicle_status
         ORDER BY FIELD(vehicle_status,'Critical','Poor','Attention','Good','Excellent')
     """)

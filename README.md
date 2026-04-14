@@ -26,7 +26,7 @@
 | 🚗 **Fleet Coverage** | **5,000 vehicles · assessed daily** |
 | 🧠 **Ensemble Strategy** | **XGB 93.5% · TabNet 6.4% · LGBM 0.1%** |
 | 📊 **Feature Dimensions** | **~59 engineered + 14 neural features** |
-| 🗄️ **Database Tables** | **9 tables · ~1.89 million records** |
+| 🗄️ **Database Tables** | **12 tables · blockchain-anchored · `mlops_db`** |
 
 </div>
 
@@ -43,6 +43,13 @@
 | 5 | [Project Structure](#-project-structure) | Directory layout |
 | 6 | [Tech Stack](#-tech-stack) | Technologies used |
 | 7 | [Documentation](#-documentation) | Deep-dive doc links |
+
+---
+
+## 📚 Documentation
+* **[Backend Documentation →](backend/README.md)**
+* **[Database Documentation →](database/README%20database.md)**
+* **[ML Pipeline Details →](docs/ml-pipeline.md)**
 
 ---
 
@@ -69,9 +76,10 @@ Military fleets rely on **fixed, calendar-based maintenance schedules** — a ve
 
 ```
     ┌──────────────────────────────────────────────────────────────┐
-    │  MySQL Database  (real Army vehicle telemetry)               │
-    │  vehicles · telemetry_data · maintenance_records             │
-    │  diagnostic_codes · operational_logs · fuel_records          │
+    │  MySQL Database  `mlops_db`  (real Army vehicle telemetry)  │
+    │  Vehicle · vehicle_telemetry · maintainance_record          │
+    │  diagnostic_code · operational_log · fuel_record            │
+    │  health_score_record · spare_parts · tamper_proof_record     │
     └──────────────────────────┬───────────────────────────────────┘
                                │
     ┌──────────────────────────▼───────────────────────────────────┐
@@ -173,9 +181,12 @@ generate_data_env\Scripts\Activate.ps1
 pip install -r Army_ML_Pipeline_and_Files\requirements.txt
 ```
 
-### 2 — Configure Database
-Update `DB_CONFIG` in all pipeline scripts with your MySQL credentials.  
-➔ See [Database Integration Guide](docs/db-integration.md) for the complete list of files.
+### 2 — Import Schema & Configure Database
+```powershell
+mysql -u root -p < database\schema.sql
+```
+Update `DB_CONFIG` in all pipeline scripts with your MySQL credentials (`mlops_db`).  
+➔ See [Database README](database/README%20database.md) for the complete setup guide.
 
 ### 3 — One-Time Label Setup
 ```powershell
@@ -225,6 +236,10 @@ military-vehicle-inventory-logistics-optimization/
 │       ├── shap_importance.csv
 │       └── mlops/                           # Per-run JSON audit logs
 │
+├── database/                                # 🗄️ Database module (v2.0)
+│   ├── schema.sql                           # Full MySQL schema — mlops_db (12 tables + views + seed)
+│   └── README database.md                   # DB setup, ER mapping, column reference
+│
 ├── database_utils/
 │   ├── verify_database.py                   # Schema + row count verification
 │   ├── verify_labels.py                     # Label distribution check
@@ -235,8 +250,6 @@ military-vehicle-inventory-logistics-optimization/
 ├── docs/                                    # 📖 Full documentation suite
 │   ├── problem-statement.md                 # Why + design decisions
 │   ├── ml-pipeline.md                       # Stage-by-stage pipeline reference
-│   ├── database-schema.md                   # All 9 tables, columns, types
-│   ├── db-integration.md                    # DB engineer integration guide
 │   ├── installation.md                      # Setup + dependency guide
 │   └── quick-reference.md                   # Commands cheat sheet
 │
@@ -263,7 +276,8 @@ military-vehicle-inventory-logistics-optimization/
 | **Class Balancing** | imbalanced-learn SMOTE | Per-fold synthetic minority oversampling |
 | **Explainability** | SHAP TreeExplainer | Global + per-class feature attributions |
 | **Calibration** | Temperature Scaling | Probability calibration before ensemble stacking |
-| **Database** | MySQL 8.0 + mysql-connector-python | 9-table fleet data warehouse |
+| **Database** | MySQL 8.0 + mysql-connector-python | 12-table fleet data warehouse (`mlops_db`) |
+| **Blockchain Layer** | `tamper_proof_record` table | SHA-256 hash anchoring of critical records |
 | **Data Pipeline** | Pandas + PyArrow | SQL → parquet feature matrix |
 | **Visualisation** | Matplotlib + Seaborn | ROC curves, confusion matrix, SHAP plots |
 
@@ -275,8 +289,8 @@ military-vehicle-inventory-logistics-optimization/
 |---|---|
 | [**Problem Statement**](docs/problem-statement.md) | Why this system exists, the operational gap it fills, and all key design decisions explained |
 | [**ML Pipeline**](docs/ml-pipeline.md) | Stage-by-stage deep dive: feature groups, model configurations, ensemble tournament, inference formula |
-| [**Database Schema**](docs/database-schema.md) | All 9 tables with column types, indexes, DTC code catalogue, and SQL verification queries |
-| [**DB Integration Guide**](docs/db-integration.md) | **For the DB engineer** — credentials, schema alignment, label assignment, pipeline execution, cleanup |
+| [**Database Schema & Setup**](database/README%20database.md) | All 12 tables, ER mapping, views, column reference, and Django/Python connection guide |
+| [**Database SQL**](database/schema.sql) | Full `mlops_db` schema — tables, indexes, views, seed data |
 | [**Installation**](docs/installation.md) | Prerequisites, virtualenv, dependency table, MySQL setup, common issues |
 | [**Quick Reference**](docs/quick-reference.md) | All pipeline commands, utility scripts, output file map, and health class definitions |
 | [**Full Technical PDF**](Army_ML_Pipeline_Documentation.pdf) | 21-page comprehensive reference for every file, function, and design decision |

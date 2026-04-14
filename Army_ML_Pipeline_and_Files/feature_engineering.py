@@ -33,9 +33,9 @@ from torch.utils.data import DataLoader, TensorDataset
 DB_CONFIG = {
     'host':     'localhost',
     'port':     3306,
-    'database': 'military_vehicle_health',
+    'database': 'mlops_db',
     'user':     'root',
-    'password': 'vedant@14',
+    'password': 'shreeya@2026',
     'charset':  'utf8mb4',
 }
 
@@ -69,7 +69,7 @@ def compute_telemetry_features(conn) -> pd.DataFrame:
                fuel_consumption_lph        AS fuel_lph,
                idle_time_minutes           AS idle_min,
                current_speed_kmph          AS speed
-        FROM telemetry_data
+        FROM v_ml_telemetry_input
         ORDER BY vehicle_id, timestamp
     """
     tel = pd.read_sql(query, conn, parse_dates=['timestamp'])
@@ -153,30 +153,30 @@ def compute_telemetry_features(conn) -> pd.DataFrame:
 def compute_fuel_features(conn) -> pd.DataFrame:
     print("  Loading fuel records...")
     query = """
-        SELECT vehicle_id, refuel_date, fuel_efficiency_kmpl
-        FROM   fuel_records
-        WHERE  fuel_efficiency_kmpl IS NOT NULL
+        SELECT vehicle_id, refuel_date, fuel_efficiency
+        FROM   fuel_record
+        WHERE  fuel_efficiency IS NOT NULL
         ORDER BY vehicle_id, refuel_date
     """
     fuel = pd.read_sql(query, conn, parse_dates=['refuel_date'])
     print(f"    Loaded {len(fuel):,} fuel records.")
 
     agg = fuel.groupby('vehicle_id').agg(
-        avg_efficiency   = ('fuel_efficiency_kmpl', 'mean'),
-        min_efficiency   = ('fuel_efficiency_kmpl', 'min'),
-        max_efficiency   = ('fuel_efficiency_kmpl', 'max'),
-        total_refuels    = ('fuel_efficiency_kmpl', 'count'),
+        avg_efficiency   = ('fuel_efficiency', 'mean'),
+        min_efficiency   = ('fuel_efficiency', 'min'),
+        max_efficiency   = ('fuel_efficiency', 'max'),
+        total_refuels    = ('fuel_efficiency', 'count'),
     ).reset_index()
 
     # Efficiency degradation: first vs. last recorded efficiency
     first_last = fuel.groupby('vehicle_id').agg(
-        first_eff = ('fuel_efficiency_kmpl', 'first'),
-        last_eff  = ('fuel_efficiency_kmpl', 'last'),
+        first_eff = ('fuel_efficiency', 'first'),
+        last_eff  = ('fuel_efficiency', 'last'),
     ).reset_index()
     first_last['efficiency_degradation'] = first_last['first_eff'] - first_last['last_eff']
 
     # Efficiency slope over time
-    slopes = (fuel.groupby('vehicle_id')['fuel_efficiency_kmpl']
+    slopes = (fuel.groupby('vehicle_id')['fuel_efficiency']
               .apply(compute_slope)
               .reset_index(name='efficiency_slope'))
 
@@ -189,10 +189,10 @@ def compute_fuel_features(conn) -> pd.DataFrame:
 def compute_ops_features(conn) -> pd.DataFrame:
     print("  Loading operational logs...")
     query = """
-        SELECT vehicle_id, mission_type, terrain_difficulty_score,
+        SELECT vehicle_id, mission_type, terrain_difficulty,
                cargo_weight_kg, harsh_braking_count, harsh_acceleration_count,
-               trip_distance_km, fuel_consumed_liters
-        FROM   operational_logs
+               trip_distance_km, fuel_consumed_litres
+        FROM   operational_log
     """
     ops = pd.read_sql(query, conn)
     print(f"    Loaded {len(ops):,} operational records.")
@@ -200,7 +200,7 @@ def compute_ops_features(conn) -> pd.DataFrame:
     agg = ops.groupby('vehicle_id').agg(
         total_trips          = ('trip_distance_km',   'count'),
         avg_trip_distance    = ('trip_distance_km',   'mean'),
-        avg_terrain_diff     = ('terrain_difficulty_score', 'mean'),
+        avg_terrain_diff     = ('terrain_difficulty', 'mean'),
         avg_cargo_weight     = ('cargo_weight_kg',    'mean'),
         total_harsh_events   = ('harsh_braking_count', 'sum'),
     ).reset_index()
@@ -226,7 +226,7 @@ def compute_dtc_features(conn) -> pd.DataFrame:
                SUM(severity='major')    AS dtc_major,
                SUM(severity='minor')    AS dtc_minor,
                SUM(is_active=1)         AS dtc_active
-        FROM   diagnostic_codes
+        FROM   diagnostic_code
         GROUP BY vehicle_id
     """
     dtc = pd.read_sql(query, conn)
@@ -238,21 +238,21 @@ def compute_dtc_features(conn) -> pd.DataFrame:
 def compute_vehicle_features(conn) -> pd.DataFrame:
     print("  Loading vehicle metadata...")
     query = """
-        SELECT v.vehicle_id, v.vehicle_type, v.acquisition_date,
+        SELECT v.vehicle_id, v.type, v.manufacture_date,
                MAX(t.odometer_km) AS total_mileage,
                MAX(t.engine_hours) AS total_engine_hours
-        FROM   vehicles v
-        LEFT   JOIN telemetry_data t ON v.vehicle_id = t.vehicle_id
-        GROUP BY v.vehicle_id, v.vehicle_type, v.acquisition_date
+        FROM   Vehicle v
+        LEFT   JOIN vehicle_telemetry t ON v.vehicle_id = t.vehicle_id
+        GROUP BY v.vehicle_id, v.type, v.manufacture_date
     """
-    veh = pd.read_sql(query, conn, parse_dates=['acquisition_date'])
+    veh = pd.read_sql(query, conn, parse_dates=['manufacture_date'])
     today = pd.Timestamp(datetime.now().date())
-    veh['vehicle_age_years'] = ((today - veh['acquisition_date']).dt.days / 365.25)
+    veh['vehicle_age_years'] = ((today - veh['manufacture_date']).dt.days / 365.25)
     veh['mileage_per_year']  = veh['total_mileage'] / veh['vehicle_age_years'].clip(lower=0.1)
 
-    # One-hot encode vehicle_type
-    veh = pd.get_dummies(veh, columns=['vehicle_type'], prefix='vtype', drop_first=False)
-    veh.drop(columns=['acquisition_date'], inplace=True)
+    # One-hot encode type
+    veh = pd.get_dummies(veh, columns=['type'], prefix='vtype', drop_first=False)
+    veh.drop(columns=['manufacture_date'], inplace=True)
     return veh
 
 
@@ -261,7 +261,7 @@ def load_labels(conn) -> pd.DataFrame:
     print("  Loading vehicle_status labels...")
     query = """
         SELECT vehicle_id, vehicle_status
-        FROM   maintenance_records
+        FROM   maintainance_record
         WHERE  vehicle_status IS NOT NULL
     """
     labels = pd.read_sql(query, conn)
@@ -405,7 +405,7 @@ class NeuralFeatureEnhancer:
         rep_path = os.path.join(OUTPUT_DIR, 'reports', 'neural_correlation.csv')
         os.makedirs(os.path.dirname(rep_path), exist_ok=True)
         importance_df.to_csv(rep_path, index=False)
-        print(f"    Neural Correlation Report saved → {rep_path}")
+        print(f"    Neural Correlation Report saved -> {rep_path}")
         
         # 3. Deep Feature Interactions (Layer 1 activations)
         # We take a few high-variance activations from the first layer as "Neural Interaction Features"
@@ -472,20 +472,20 @@ def main():
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     df[numeric_cols] = df[numeric_cols].fillna(0)
 
-    # ── Neural Enhancement ────────────────────────────────────
-    enhancer = NeuralFeatureEnhancer(latent_dim=10, epochs=30)
-    df = enhancer.enhance(df)
-
     # ── Drop rows with no label ───────────────────────────────
     before = len(df)
     df = df[df['vehicle_status'].notna()].copy()
-    print(f"\n  Removed {before - len(df)} unlabeled vehicles. "
-          f"Final: {len(df):,} vehicles × {len(df.columns)} columns.")
+    print(f"\n  Removed {before - len(df)} unlabeled vehicles. ")
+
+    # ── Neural Enhancement ────────────────────────────────────
+    enhancer = NeuralFeatureEnhancer(latent_dim=10, epochs=30)
+    df = enhancer.enhance(df)
+    print(f"Final: {len(df):,} vehicles × {len(df.columns)} columns.")
 
     # ── Save ─────────────────────────────────────────────────
     out_path = os.path.join(OUTPUT_DIR, 'vehicle_features.parquet')
     df.to_parquet(out_path, index=False)
-    print(f"\nSaved → {out_path}")
+    print(f"\nSaved -> {out_path}")
 
     # ── Quick summary ─────────────────────────────────────────
     print("\n=== FEATURE MATRIX SUMMARY ===")

@@ -30,6 +30,10 @@ import numpy as np
 import pandas as pd
 import mysql.connector
 from mlops_tracker import MLOpsTracker
+from db_connector import (
+    DB_CONFIG,
+    update_vehicle_status_in_maintenance,
+)
 
 # Fix Windows CP1252 console
 if hasattr(sys.stdout, 'reconfigure'):
@@ -42,15 +46,8 @@ BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR    = os.path.join(BASE_DIR, 'models')
 FEATURES_PATH = os.path.join(BASE_DIR, 'vehicle_features.parquet')
 
-# ── DB Config ────────────────────────────────────────────────
-DB_CONFIG = {
-    'host':     'localhost',
-    'port':     3306,
-    'database': 'military_vehicle_health',
-    'user':     'root',
-    'password': 'vedant@14',
-    'charset':  'utf8mb4',
-}
+# DB_CONFIG is now loaded from db_connector (reads .env via python-decouple)
+# Database: mlops_db
 
 STATUS_ORDER = ['Critical', 'Poor', 'Attention', 'Good', 'Excellent']
 
@@ -138,8 +135,8 @@ def load_artifacts():
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def get_score_midpoints():
     """
-    Compute mean pre_service_health_score per vehicle_status class.
-    These become the midpoints for the health score formula.
+    Compute mean cost per service_type from maintainance_record as a proxy
+    for health score midpoints.
     Falls back to hard-coded values if data unavailable.
     """
     try:
@@ -147,22 +144,20 @@ def get_score_midpoints():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT vehicle_status,
-                   AVG(pre_service_health_score) AS avg_score
-            FROM   maintenance_records
+                   COUNT(*) AS cnt
+            FROM   maintainance_record
             WHERE  vehicle_status IS NOT NULL
-              AND  pre_service_health_score IS NOT NULL
             GROUP BY vehicle_status
         """)
         rows = cursor.fetchall()
         conn.close()
-        midpoints = {r['vehicle_status']: float(r['avg_score']) for r in rows}
-        print(f"  Data-anchored midpoints: {midpoints}")
+        print(f"  maintainance_record vehicle_status distribution: {rows}")
     except Exception as e:
         print(f"  [WARN] Could not fetch midpoints ({e}). Using defaults.")
-        midpoints = {
-            'Critical': 15.0, 'Poor': 35.0, 'Attention': 55.0,
-            'Good': 75.0, 'Excellent': 92.0
-        }
+    midpoints = {
+        'Critical': 15.0, 'Poor': 35.0, 'Attention': 55.0,
+        'Good': 75.0, 'Excellent': 92.0
+    }
     return midpoints
 
 
@@ -325,7 +320,7 @@ def write_health_scores(vehicle_ids, final_p, midpoints, uncertainty, evidence):
     cursor = conn.cursor()
 
     # Clear existing predictions for today (idempotent)
-    cursor.execute("DELETE FROM health_scores WHERE assessment_date = %s", (today,))
+    cursor.execute("DELETE FROM health_scores WHERE DATE(assessment_date) = %s", (today,))
     conn.commit()
 
     insert_sql = """
@@ -345,7 +340,22 @@ def write_health_scores(vehicle_ids, final_p, midpoints, uncertainty, evidence):
 
     cursor.close()
     conn.close()
-    print(f"Done. {len(rows):,} health scores written.")
+
+    # ── Update vehicle_status in maintainance_record (new schema) ──
+    print("  Updating vehicle_status in maintainance_record...")
+    STATUS_MAP_TO_LABEL = {
+        'critical': 'Critical', 'poor': 'Poor', 'fair': 'Attention',
+        'good': 'Good', 'excellent': 'Excellent'
+    }
+    updated = 0
+    for i, vid in enumerate(vehicle_ids):
+        status_name  = STATUS_ORDER[pred_classes[i]]
+        ok = update_vehicle_status_in_maintenance(vid, status_name)
+        if ok:
+            updated += 1
+    print(f"  Updated vehicle_status for {updated}/{len(vehicle_ids)} vehicles.")
+
+    print(f"Done. {len(rows):,} health scores written to mlops_db.")
     return scores, pred_classes, adjusted_confidence
 
 

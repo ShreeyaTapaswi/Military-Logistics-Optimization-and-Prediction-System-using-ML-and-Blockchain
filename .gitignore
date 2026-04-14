@@ -64,6 +64,7 @@ desktop.ini
 .ipynb_checkpoints/
 
 # ── Sensitive credentials ─────────────────────────────────────
+.env
 # NOTE: DB passwords are hardcoded in scripts — contributors should
 # update DB_CONFIG with their own credentials before running.
 # Consider using a .env file and python-dotenv in production.

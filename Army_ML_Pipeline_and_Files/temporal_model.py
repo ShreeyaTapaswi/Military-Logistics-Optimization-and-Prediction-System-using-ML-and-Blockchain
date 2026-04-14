@@ -4,20 +4,26 @@ import torch.nn as nn
 import numpy as np
 import pandas as pd
 import mysql.connector
-
-# ── Config ──────────────────────────────────────────────────
-DB_CONFIG = {
-    'host':     'localhost',
-    'port':     3306,
-    'database': 'military_vehicle_health',
-    'user':     'root',
-    'password': 'vedant@14',
-}
+from db_connector import DB_CONFIG
 
 SEQUENCE_LENGTH = 50
+
+# Named columns — aligned to v_ml_telemetry_input view output
+# No more column index dependency (fixes column index warning in ML doc)
 FEATURE_COLS = [
-    'coolant_temp_c', 'fuel_level_percent', 'odometer_km', 'speed_kph',
-    'oil_pressure_psi', 'battery_voltage', 'tire_pressure_psi_avg', 'engine_rpm'
+    'engine_coolant_temp_celsius',
+    'engine_oil_temp_celsius',
+    'battery_voltage',
+    'engine_rpm',
+    'engine_load_percent',
+    'fuel_consumption_lph',
+    'idle_time_minutes',
+    'current_speed_kmph',
+    'odometer_km',
+    'engine_hours',
+    'fuel_level_percent',
+    'oil_pressure_psi',
+    'tire_pressure_psi_avg',
 ]
 
 class BiLSTMHealthModel(nn.Module):
@@ -38,55 +44,67 @@ class BiLSTMHealthModel(nn.Module):
 def extract_sequences():
     print("Extracting telemetry sequences for all vehicles...")
     conn = mysql.connector.connect(**DB_CONFIG)
-    
-    # Get all vehicle IDs
+
+    # Get all vehicle IDs from new schema table name
     cursor = conn.cursor()
-    cursor.execute("SELECT DISTINCT vehicle_id FROM vehicles")
+    cursor.execute("SELECT DISTINCT vehicle_id FROM Vehicle ORDER BY vehicle_id")
     vehicle_ids = [r[0] for r in cursor.fetchall()]
-    
+
     sequences = []
-    targets = [] # Not used during pure inference, but good for training setup
-    
-    # indices: coolant_temp_c(5), fuel_level_percent(9), odometer_km(3), speed_kph(10), 
-    #          oil_pressure_psi(6), battery_voltage(7), tire_pressure_psi_avg(11), engine_rpm(8)
-    target_indices = [5, 9, 3, 10, 6, 7, 11, 8]
 
     for i, vid in enumerate(vehicle_ids):
-        # Get last 50 records for this vehicle
-        query = f"SELECT * FROM telemetry_data WHERE vehicle_id = '{vid}' ORDER BY timestamp DESC LIMIT {SEQUENCE_LENGTH}"
-        cursor.execute(query)
+        # Query via v_ml_telemetry_input view — named columns, no index dependency
+        query = """
+            SELECT
+                engine_coolant_temp_celsius,
+                engine_oil_temp_celsius,
+                battery_voltage,
+                engine_rpm,
+                engine_load_percent,
+                fuel_consumption_lph,
+                idle_time_minutes,
+                current_speed_kmph,
+                odometer_km,
+                engine_hours,
+                fuel_level_percent,
+                oil_pressure_psi,
+                tire_pressure_psi_avg
+            FROM  v_ml_telemetry_input
+            WHERE vehicle_id = %s
+            ORDER BY `timestamp` DESC
+            LIMIT %s
+        """
+        cursor.execute(query, (vid, SEQUENCE_LENGTH))
         rows = cursor.fetchall()
-        
+        n_features = len(FEATURE_COLS)
+
         if len(rows) < SEQUENCE_LENGTH:
-            # Padding
             pad_size = SEQUENCE_LENGTH - len(rows)
-            padding = np.zeros((pad_size, len(FEATURE_COLS)))
+            padding  = np.zeros((pad_size, n_features))
             if len(rows) > 0:
-                # Filter rows by target indices
-                data = np.array([[r[idx] for idx in target_indices] for r in rows])
-                seq = np.vstack([data, padding])
+                data = np.array([[float(v) if v is not None else 0.0 for v in r] for r in rows])
+                seq  = np.vstack([data, padding])
             else:
                 seq = padding
         else:
-            # Filter rows by target indices
-            data = np.array([[r[idx] for idx in target_indices] for r in rows])
-            seq = data
-            
+            data = np.array([[float(v) if v is not None else 0.0 for v in r] for r in rows])
+            seq  = data
+
         # Reverse to get chronological order
         seq = seq[::-1]
         sequences.append(seq)
-        
-        if (i+1) % 100 == 0:
+
+        if (i + 1) % 100 == 0:
             print(f"  Processed {i+1}/{len(vehicle_ids)} vehicles...")
-            
+
     conn.close()
     return np.array(sequences, dtype=np.float32)
 
 def run_temporal_inference(sequences):
     print("Initializing Bi-LSTM Temporal Inference...")
-    input_dim = 8
+    input_dim  = len(FEATURE_COLS)   # 13 named features from v_ml_telemetry_input
     hidden_dim = 64
-    output_dim = 5  # 5 health classes
+    output_dim = 5                   # 5 health classes
     
     model = BiLSTMHealthModel(input_dim, hidden_dim, output_dim)
     model.eval()
