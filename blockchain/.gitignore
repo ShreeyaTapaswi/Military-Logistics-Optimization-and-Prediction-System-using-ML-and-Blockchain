@@ -1,0 +1,7 @@
+# Local JavaScript dependencies are reproducible via npm install
+node_modules/
+
+# Truffle cache/log artifacts
+build/contracts/*.dbg.json
+npm-debug.log*
+yarn-error.log*

@@ -70,6 +70,192 @@ const STORAGE_KEYS = {
   SESSION: "avms_session"
 };
 
+const API_DEFAULT_BASE_URL = "http://127.0.0.1:8000/api";
+const API_TIMEOUT_MS = 8000;
+const BACKEND_VEHICLE_CACHE_TTL_MS = 30000;
+
+const BACKEND_STATUS_TO_UI_STATUS = {
+  available: "Active",
+  mission_deployed: "Active",
+  in_maintenance: "Under Maintenance",
+  unavailable: "Service Due",
+  decommissioned: "Under Maintenance",
+  excellent: "Active",
+  good: "Active",
+  fair: "Service Due",
+  poor: "Under Maintenance",
+  critical: "Under Maintenance"
+};
+
+const STATE_TO_BASE_ID = {
+  "delhi": "base_delhi",
+  "ladakh": "base_leh",
+  "jammu and kashmir": "base_leh",
+  "maharashtra": "base_pune",
+  "rajasthan": "base_jaisalmer",
+  "west bengal": "base_kolkata"
+};
+
+let backendVehicleCache = {
+  fetchedAt: 0,
+  data: []
+};
+
+function normalizeApiBaseUrl(url) {
+  return String(url || API_DEFAULT_BASE_URL).trim().replace(/\/+$/, "");
+}
+
+function getApiBaseUrl() {
+  const configuredBase = (window.AVMS_CONFIG && window.AVMS_CONFIG.apiBaseUrl)
+    || localStorage.getItem("avms_api_base")
+    || API_DEFAULT_BASE_URL;
+  return normalizeApiBaseUrl(configuredBase);
+}
+
+function isBackendApiConfigured() {
+  return Boolean(getApiBaseUrl());
+}
+
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function toDateString(date) {
+  return date.toISOString().split("T")[0];
+}
+
+function resolveBaseId(state, city) {
+  const normalizedState = String(state || "").trim().toLowerCase();
+  if (STATE_TO_BASE_ID[normalizedState]) {
+    return STATE_TO_BASE_ID[normalizedState];
+  }
+
+  const normalizedCity = String(city || "").trim().toLowerCase();
+  if (normalizedCity) {
+    const cityMatch = MOCK_BASES.find(base => base.name.toLowerCase().includes(normalizedCity));
+    if (cityMatch) {
+      return cityMatch.id;
+    }
+  }
+
+  return "base_delhi";
+}
+
+function mapBackendStatus(status) {
+  const key = String(status || "").trim().toLowerCase();
+  return BACKEND_STATUS_TO_UI_STATUS[key] || "Service Due";
+}
+
+function mapBackendVehicleToUi(vehicle) {
+  const today = new Date();
+  return {
+    id: vehicle.vehicle_id,
+    plateNo: vehicle.vehicle_no || vehicle.vehicle_id,
+    type: vehicle.type || "Unknown",
+    unit: vehicle.model || "Unassigned Unit",
+    baseId: resolveBaseId(vehicle.state, vehicle.city),
+    status: mapBackendStatus(vehicle.operational_status),
+    lastService: toDateString(today),
+    nextService: toDateString(addDays(today, 90))
+  };
+}
+
+async function requestApi(path, options = {}) {
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), options.timeoutMs || API_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(`${getApiBaseUrl()}${path}`, {
+      method: options.method || "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal
+    });
+
+    const text = await response.text();
+    const payload = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(payload.message || `HTTP ${response.status}`);
+    }
+    if (payload && payload.success === false) {
+      throw new Error(payload.message || "Backend request failed");
+    }
+    return payload;
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
+}
+
+function clearVehicleApiCache() {
+  backendVehicleCache = {
+    fetchedAt: 0,
+    data: []
+  };
+}
+
+function getCachedBackendVehicles() {
+  return backendVehicleCache.data.slice();
+}
+
+async function fetchVehiclesFromBackend(options = {}) {
+  if (!isBackendApiConfigured()) {
+    return { success: false, data: [], error: "Backend API URL is not configured." };
+  }
+
+  const now = Date.now();
+  const cacheIsValid = (now - backendVehicleCache.fetchedAt) < BACKEND_VEHICLE_CACHE_TTL_MS;
+  if (!options.force && cacheIsValid && backendVehicleCache.data.length > 0) {
+    return { success: true, data: backendVehicleCache.data.slice(), source: "cache" };
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.set("limit", String(options.limit || 500));
+    if (options.status) {
+      params.set("status", options.status);
+    }
+    if (options.state) {
+      params.set("state", options.state);
+    }
+
+    const payload = await requestApi(`/vehicles/?${params.toString()}`);
+    const vehicles = Array.isArray(payload.data) ? payload.data.map(mapBackendVehicleToUi) : [];
+
+    backendVehicleCache = {
+      fetchedAt: now,
+      data: vehicles
+    };
+
+    return { success: true, data: vehicles, source: "backend" };
+  } catch (error) {
+    return { success: false, data: [], error: error.message || "Vehicle API request failed." };
+  }
+}
+
+async function fetchFleetSummary() {
+  try {
+    const payload = await requestApi("/fleet/summary/");
+    return { success: true, data: payload.data };
+  } catch (error) {
+    return { success: false, data: null, error: error.message || "Fleet summary API request failed." };
+  }
+}
+
+async function fetchSystemHealth() {
+  try {
+    const payload = await requestApi("/health/");
+    return { success: true, data: payload.services };
+  } catch (error) {
+    return { success: false, data: null, error: error.message || "System health API request failed." };
+  }
+}
+
 // Initialize data if not present
 function initializeData() {
   if (!localStorage.getItem(STORAGE_KEYS.VEHICLES)) {
@@ -148,6 +334,13 @@ window.AppData = {
   STORAGE_KEYS,
   MOCK_BASES,
   VEHICLE_TYPES,
+  getApiBaseUrl,
+  isBackendApiConfigured,
+  fetchSystemHealth,
+  fetchFleetSummary,
+  fetchVehiclesFromBackend,
+  getCachedBackendVehicles,
+  clearVehicleApiCache,
   initializeData,
   getData,
   saveData,

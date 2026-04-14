@@ -8,11 +8,14 @@ let selectedBaseFilter = null;
 let map = null;
 let statusChart = null;
 let baseChart = null;
+let backendApiConnected = false;
+let backendReadOnlyNotified = false;
+let backendFallbackNotified = false;
 
 /* ========================================
    Initialization
    ======================================== */
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     // Check authentication
     currentUser = AppData.getSession();
     if (!currentUser) {
@@ -29,8 +32,10 @@ document.addEventListener('DOMContentLoaded', function () {
     setupFilters();
     setupEventListeners();
 
+    await initializeBackendConnection();
+
     // Load initial page
-    loadDashboard();
+    await loadDashboard();
 });
 
 /* ========================================
@@ -157,18 +162,84 @@ function setupEventListeners() {
     document.getElementById('inventoryCategoryFilter').addEventListener('change', loadInventory);
 }
 
+function normalizeDistribution(distribution) {
+    const normalized = {};
+    Object.entries(distribution || {}).forEach(([key, value]) => {
+        normalized[String(key).toLowerCase()] = Number(value) || 0;
+    });
+    return normalized;
+}
+
+function mapFleetSummaryToKpis(summary) {
+    const distribution = normalizeDistribution(summary && summary.status_distribution);
+    const active = (distribution.excellent || 0) + (distribution.good || 0) + (distribution.available || 0) + (distribution.mission_deployed || 0);
+    const maintenance = (distribution.poor || 0) + (distribution.critical || 0) + (distribution.in_maintenance || 0);
+    const serviceDue = (distribution.fair || 0) + (distribution.unavailable || 0);
+    const total = Number(summary && summary.vehicle_count) || (active + maintenance + serviceDue);
+    return { total, active, maintenance, serviceDue };
+}
+
+function updateDataSourceBadge(message) {
+    const badge = document.getElementById('dataSourceBadge');
+    if (badge) {
+        badge.textContent = message;
+    }
+}
+
+function setVehicleEditMode(isReadOnly) {
+    const addVehicleButton = document.getElementById('addVehicleBtn');
+    if (!addVehicleButton) {
+        return;
+    }
+
+    addVehicleButton.disabled = isReadOnly;
+    addVehicleButton.style.opacity = isReadOnly ? '0.65' : '';
+    addVehicleButton.style.cursor = isReadOnly ? 'not-allowed' : '';
+    addVehicleButton.title = isReadOnly
+        ? 'Vehicle records are currently synced from backend API in read-only mode.'
+        : '';
+}
+
+async function initializeBackendConnection() {
+    const healthResult = await AppData.fetchSystemHealth();
+
+    if (healthResult.success) {
+        backendApiConnected = true;
+        updateDataSourceBadge(`Data Source: Backend API (${AppData.getApiBaseUrl()})`);
+        showToast('Backend API connected. Dashboard will use live data.', 'success');
+        return;
+    }
+
+    backendApiConnected = false;
+    updateDataSourceBadge('Data Source: Local demo cache');
+    showToast('Backend API unavailable. Using local demo cache.', 'warning');
+}
+
 /* ========================================
    Dashboard
    ======================================== */
-function loadDashboard() {
+async function loadDashboard() {
     const vehicles = getFilteredVehicles();
     const inventory = AppData.getData(AppData.STORAGE_KEYS.INVENTORY);
 
-    // KPIs
-    const total = vehicles.length;
-    const active = vehicles.filter(v => v.status === 'Active').length;
-    const maintenance = vehicles.filter(v => v.status === 'Under Maintenance').length;
-    const serviceDue = vehicles.filter(v => v.status === 'Service Due').length;
+    let total = vehicles.length;
+    let active = vehicles.filter(v => v.status === 'Active').length;
+    let maintenance = vehicles.filter(v => v.status === 'Under Maintenance').length;
+    let serviceDue = vehicles.filter(v => v.status === 'Service Due').length;
+
+    const summaryResult = await AppData.fetchFleetSummary();
+    if (summaryResult.success && summaryResult.data) {
+        const backendKpis = mapFleetSummaryToKpis(summaryResult.data);
+        total = backendKpis.total;
+        active = backendKpis.active;
+        maintenance = backendKpis.maintenance;
+        serviceDue = backendKpis.serviceDue;
+        backendApiConnected = true;
+        updateDataSourceBadge(`Data Source: Backend API (${AppData.getApiBaseUrl()})`);
+    } else if (!backendApiConnected) {
+        updateDataSourceBadge('Data Source: Local demo cache');
+    }
+
     const lowStock = inventory.filter(p => p.quantity < p.minStock).length;
 
     document.getElementById('kpiTotal').textContent = total;
@@ -177,9 +248,15 @@ function loadDashboard() {
     document.getElementById('kpiServiceDue').textContent = serviceDue;
     document.getElementById('kpiLowStock').textContent = lowStock;
 
+    let vehiclesForCharts = vehicles;
+    const vehicleSyncResult = await AppData.fetchVehiclesFromBackend();
+    if (vehicleSyncResult.success) {
+        vehiclesForCharts = vehicleSyncResult.data;
+    }
+
     // Charts
     renderStatusChart(active, maintenance, serviceDue);
-    renderBaseChart();
+    renderBaseChart(vehiclesForCharts);
 }
 
 function renderStatusChart(active, maintenance, serviceDue) {
@@ -215,12 +292,12 @@ function renderStatusChart(active, maintenance, serviceDue) {
     });
 }
 
-function renderBaseChart() {
-    const vehicles = AppData.getData(AppData.STORAGE_KEYS.VEHICLES);
+function renderBaseChart(vehicles) {
+    const sourceVehicles = Array.isArray(vehicles) ? vehicles : AppData.getData(AppData.STORAGE_KEYS.VEHICLES);
     const baseCounts = {};
 
     AppData.MOCK_BASES.forEach(base => {
-        baseCounts[base.name] = vehicles.filter(v => v.baseId === base.id).length;
+        baseCounts[base.name] = sourceVehicles.filter(v => v.baseId === base.id).length;
     });
 
     const ctx = document.getElementById('baseChart').getContext('2d');
@@ -281,7 +358,8 @@ function loadMap() {
     }).addTo(map);
 
     // Add markers for each base
-    const vehicles = AppData.getData(AppData.STORAGE_KEYS.VEHICLES);
+    const cachedVehicles = AppData.getCachedBackendVehicles();
+    const vehicles = cachedVehicles.length > 0 ? cachedVehicles : AppData.getData(AppData.STORAGE_KEYS.VEHICLES);
 
     AppData.MOCK_BASES.forEach(base => {
         const baseVehicles = vehicles.filter(v => v.baseId === base.id);
@@ -333,8 +411,26 @@ function getFilteredVehicles() {
     return vehicles;
 }
 
-function loadVehicles() {
-    let vehicles = getFilteredVehicles();
+async function loadVehicles() {
+    const apiVehicleResult = await AppData.fetchVehiclesFromBackend();
+    const usingBackendData = apiVehicleResult.success;
+    let vehicles = usingBackendData ? apiVehicleResult.data.slice() : getFilteredVehicles();
+
+    setVehicleEditMode(usingBackendData);
+    if (usingBackendData && !backendReadOnlyNotified) {
+        showToast('Live backend vehicle data loaded in read-only mode.', 'success');
+        backendReadOnlyNotified = true;
+    }
+    if (!usingBackendData && apiVehicleResult.error && !backendFallbackNotified) {
+        showToast('Vehicle API unavailable. Falling back to local data.', 'warning');
+        backendFallbackNotified = true;
+    }
+
+    if (currentUser.role === 'Base Admin') {
+        vehicles = vehicles.filter(v => v.baseId === currentUser.baseId);
+    } else if (selectedBaseFilter) {
+        vehicles = vehicles.filter(v => v.baseId === selectedBaseFilter);
+    }
 
     // Apply filters
     const search = document.getElementById('vehicleSearch').value.toLowerCase();
@@ -344,8 +440,8 @@ function loadVehicles() {
 
     if (search) {
         vehicles = vehicles.filter(v =>
-            v.plateNo.toLowerCase().includes(search) ||
-            v.unit.toLowerCase().includes(search)
+            (v.plateNo || '').toLowerCase().includes(search) ||
+            (v.unit || '').toLowerCase().includes(search)
         );
     }
     if (typeFilter) {
@@ -374,8 +470,14 @@ function loadVehicles() {
 
     tbody.innerHTML = vehicles.map(v => {
         const base = AppData.MOCK_BASES.find(b => b.id === v.baseId);
-        const statusClass = v.status === 'Active' ? 'active' :
+                const statusClass = v.status === 'Active' ? 'active' :
             v.status === 'Under Maintenance' ? 'maintenance' : 'service-due';
+                const actionCell = usingBackendData
+                        ? '<span style="color: var(--text-secondary); font-size: 12px;">Read-only (API)</span>'
+                        : `
+                    <button class="action-btn" onclick="editVehicle('${v.id}')">Edit</button>
+                    <button class="action-btn delete" onclick="deleteVehicle('${v.id}')">Delete</button>
+                `;
 
         return `
       <tr>
@@ -386,8 +488,7 @@ function loadVehicles() {
         <td><span class="status-badge ${statusClass}">${v.status}</span></td>
         <td>${v.lastService}</td>
         <td class="action-btns">
-          <button class="action-btn" onclick="editVehicle('${v.id}')">Edit</button>
-          <button class="action-btn delete" onclick="deleteVehicle('${v.id}')">Delete</button>
+                    ${actionCell}
         </td>
       </tr>
     `;
@@ -431,6 +532,11 @@ function editVehicle(id) {
 }
 
 function saveVehicle() {
+    if (document.getElementById('addVehicleBtn').disabled) {
+        showToast('Backend sync mode is read-only for vehicles. Use backend APIs to modify records.', 'warning');
+        return;
+    }
+
     const id = document.getElementById('vehicleId').value;
     const vehicleData = {
         plateNo: document.getElementById('vehiclePlate').value,
@@ -459,6 +565,11 @@ function saveVehicle() {
 }
 
 function deleteVehicle(id) {
+    if (document.getElementById('addVehicleBtn').disabled) {
+        showToast('Vehicle deletion is disabled in backend read-only mode.', 'warning');
+        return;
+    }
+
     if (confirm('Are you sure you want to delete this vehicle?')) {
         AppData.deleteItem(AppData.STORAGE_KEYS.VEHICLES, id);
         showToast('Vehicle deleted', 'warning');

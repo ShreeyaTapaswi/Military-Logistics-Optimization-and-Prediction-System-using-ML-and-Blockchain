@@ -47,12 +47,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "backend",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -122,6 +124,11 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.JSONParser",
     ],
 }
+
+# Local demo mode allows browser clients (including file:// frontend pages)
+# to call the backend API without same-origin hosting.
+CORS_ALLOW_ALL_ORIGINS = get_env_bool("CORS_ALLOW_ALL_ORIGINS", True)
+CORS_ALLOW_CREDENTIALS = False
 
 # Service-level toggles for modular orchestration.
 BLOCKCHAIN_ENABLED = get_env_bool("BLOCKCHAIN_ENABLED", True)
