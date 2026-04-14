@@ -5,7 +5,7 @@ STEP 3: train_health_model.py
 Trains 4 classification models on vehicle_features.parquet:
   1. XGBoost  — Bayesian optimization (50 trials, mlogloss)
   2. LightGBM — Bayesian optimization (50 trials, multi_logloss)
-  3. TabNet   — Bayesian optimization (50 trials)
+  3. TabNet   — Bayesian optimization (5 trials)
 
 Each model generates Out-of-Fold (OOF) predictions for stacking.
 SHAP analysis and feature pruning applied to XGBoost + LightGBM.
@@ -292,7 +292,7 @@ def tune_lightgbm(X, y):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def tune_tabnet(X, y):
     print(f"\n{'='*60}")
-    print("TabNet — Bayesian Optimization (50 trials)")
+    print("TabNet — Bayesian Optimization (5 trials)")
     print(f"{'='*60}")
     try:
         from pytorch_tabnet.tab_model import TabNetClassifier

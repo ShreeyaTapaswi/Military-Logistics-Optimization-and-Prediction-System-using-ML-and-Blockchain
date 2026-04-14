@@ -92,7 +92,7 @@ Military fleets rely on **fixed, calendar-based maintenance schedules** — a ve
     │  STAGE 3 — Training        │  │  STAGE 4 — temporal_model.py  │
     │  XGBoost  (Optuna 50T)     │  │  Bi-LSTM · seq_len=50         │
     │  LightGBM (Optuna 50T)     │  │  8 sensor channels            │
-    │  TabNet   (Optuna 50T)     │  │  → temporal_probs.npy         │
+    │  TabNet   (Optuna 5T)      │  │  → temporal_probs.npy         │
     │  5-fold OOF + SMOTE        │  │    (15% weight in ensemble)   │
     │  → OOF arrays (5000 × 5)  │  └──────────┬────────────────────┘
     └─────────────┬──────────────┘             │
