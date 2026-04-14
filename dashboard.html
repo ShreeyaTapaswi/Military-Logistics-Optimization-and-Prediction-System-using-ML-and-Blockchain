@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVMS - Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2><span>🎖️</span> AVMS</h2>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span>📊</span> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-page="map">
+                    <span>🗺️</span> Base Map
+                </a>
+                <a href="#" class="nav-item" data-page="vehicles">
+                    <span>🚚</span> Vehicles
+                </a>
+                <a href="#" class="nav-item" data-page="maintenance">
+                    <span>🔧</span> Maintenance
+                </a>
+                <a href="#" class="nav-item" data-page="inventory">
+                    <span>📦</span> Inventory
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">SA</div>
+                    <div class="user-details">
+                        <div class="name" id="userName">Super Admin</div>
+                        <div class="role" id="userRole">HQ Access</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-sm" style="width: 100%;" id="logoutBtn">
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Toast Container -->
+            <div class="toast-container" id="toastContainer"></div>
+
+            <!-- ========== DASHBOARD PAGE ========== -->
+            <section class="page-section active" id="page-dashboard">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <span class="badge" id="currentBase">All Bases</span>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon blue"><span>🚚</span></div>
+                        <div class="kpi-content">
+                            <h3>Total Vehicles</h3>
+                            <div class="value" id="kpiTotal">0</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon green"><span>✔️</span></div>
+                        <div class="kpi-content">
+                            <h3>Active</h3>
+                            <div class="value" id="kpiActive">0</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon red"><span>🔧</span></div>
+                        <div class="kpi-content">
+                            <h3>Under Maintenance</h3>
+                            <div class="value" id="kpiMaintenance">0</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon yellow"><span>🕧</span></div>
+                        <div class="kpi-content">
+                            <h3>Service Due</h3>
+                            <div class="value" id="kpiServiceDue">0</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon red"><span>⚠️</span></div>
+                        <div class="kpi-content">
+                            <h3>Low Stock Alerts</h3>
+                            <div class="value" id="kpiLowStock">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Vehicle Status Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Vehicles by Base</h3>
+                        <div class="chart-container">
+                            <canvas id="baseChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== MAP PAGE ========== -->
+            <section class="page-section" id="page-map">
+                <div class="page-header">
+                    <h1>Military Bases - India</h1>
+                    <span class="badge">Click a base to filter</span>
+                </div>
+                <div class="map-section">
+                    <div id="india-map"></div>
+                </div>
+            </section>
+
+            <!-- ========== VEHICLES PAGE ========== -->
+            <section class="page-section" id="page-vehicles">
+                <div class="page-header">
+                    <h1>Vehicle Management</h1>
+                    <button class="btn btn-primary btn-sm" id="addVehicleBtn">+ Add Vehicle</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>All Vehicles</h3>
+                        <div class="table-filters">
+                            <input type="text" id="vehicleSearch" placeholder="Search by plate or unit...">
+                            <select id="vehicleTypeFilter">
+                                <option value="">All Types</option>
+                            </select>
+                            <select id="vehicleStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Under Maintenance">Under Maintenance</option>
+                                <option value="Service Due">Service Due</option>
+                            </select>
+                            <select id="vehicleBaseFilter">
+                                <option value="">All Bases</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Plate No</th>
+                                <th>Type</th>
+                                <th>Unit</th>
+                                <th>Base</th>
+                                <th>Status</th>
+                                <th>Last Service</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicleTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ========== MAINTENANCE PAGE ========== -->
+            <section class="page-section" id="page-maintenance">
+                <div class="page-header">
+                    <h1>Maintenance Logs</h1>
+                    <button class="btn btn-primary btn-sm" id="addMaintenanceBtn">+ Add Entry</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Service History</h3>
+                        <div class="table-filters">
+                            <input type="text" id="maintenanceSearch" placeholder="Search by vehicle or technician...">
+                            <select id="maintenanceTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="Scheduled Service">Scheduled Service</option>
+                                <option value="Repair">Repair</option>
+                                <option value="Inspection">Inspection</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Vehicle</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Technician</th>
+                                <th>Cost (₹)</th>
+                                <th>Downtime</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenanceTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ========== INVENTORY PAGE ========== -->
+            <section class="page-section" id="page-inventory">
+                <div class="page-header">
+                    <h1>Spare Parts Inventory</h1>
+                    <button class="btn btn-primary btn-sm" id="addInventoryBtn">+ Add Part</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Stock Levels</h3>
+                        <div class="table-filters">
+                            <input type="text" id="inventorySearch" placeholder="Search parts...">
+                            <select id="inventoryCategoryFilter">
+                                <option value="">All Categories</option>
+                                <option value="Engine">Engine</option>
+                                <option value="Transmission">Transmission</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="Brakes">Brakes</option>
+                                <option value="Tires">Tires</option>
+                                <option value="Tracks">Tracks</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Part Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Min Stock</th>
+                                <th>Depot</th>
+                                <th>Last Restocked</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ========== VEHICLE MODAL ========== -->
+    <div class="modal-overlay" id="vehicleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="vehicleModalTitle">Add Vehicle</h3>
+                <button class="modal-close" onclick="closeModal('vehicleModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="vehicleForm">
+                    <input type="hidden" id="vehicleId">
+                    <div class="form-group">
+                        <label for="vehiclePlate">Plate Number</label>
+                        <input type="text" id="vehiclePlate" placeholder="e.g., IA-01-A-1234" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleType">Vehicle Type</label>
+                        <select id="vehicleType" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleUnit">Assigned Unit</label>
+                        <input type="text" id="vehicleUnit" placeholder="e.g., 56th Armored Reg." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleBase">Base</label>
+                        <select id="vehicleBase" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleStatus">Status</label>
+                        <select id="vehicleStatus" required>
+                            <option value="Active">Active</option>
+                            <option value="Under Maintenance">Under Maintenance</option>
+                            <option value="Service Due">Service Due</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleLastService">Last Service Date</label>
+                        <input type="date" id="vehicleLastService" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicleNextService">Next Service Due</label>
+                        <input type="date" id="vehicleNextService" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('vehicleModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveVehicle()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MAINTENANCE MODAL ========== -->
+    <div class="modal-overlay" id="maintenanceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="maintenanceModalTitle">Add Maintenance Entry</h3>
+                <button class="modal-close" onclick="closeModal('maintenanceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="maintenanceForm">
+                    <input type="hidden" id="maintenanceId">
+                    <div class="form-group">
+                        <label for="maintenanceVehicle">Vehicle</label>
+                        <select id="maintenanceVehicle" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceDate">Date</label>
+                        <input type="date" id="maintenanceDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceType">Type</label>
+                        <select id="maintenanceType" required>
+                            <option value="Scheduled Service">Scheduled Service</option>
+                            <option value="Repair">Repair</option>
+                            <option value="Inspection">Inspection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceDesc">Description</label>
+                        <input type="text" id="maintenanceDesc" placeholder="Describe the work done" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceTech">Technician</label>
+                        <input type="text" id="maintenanceTech" placeholder="e.g., Sgt. Sharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceCost">Cost (₹)</label>
+                        <input type="number" id="maintenanceCost" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenanceDowntime">Downtime (days)</label>
+                        <input type="number" id="maintenanceDowntime" placeholder="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('maintenanceModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveMaintenance()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== INVENTORY MODAL ========== -->
+    <div class="modal-overlay" id="inventoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="inventoryModalTitle">Add Spare Part</h3>
+                <button class="modal-close" onclick="closeModal('inventoryModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="inventoryForm">
+                    <input type="hidden" id="inventoryId">
+                    <div class="form-group">
+                        <label for="inventoryName">Part Name</label>
+                        <input type="text" id="inventoryName" placeholder="e.g., Engine Oil Filter" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryCategory">Category</label>
+                        <select id="inventoryCategory" required>
+                            <option value="Engine">Engine</option>
+                            <option value="Transmission">Transmission</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Brakes">Brakes</option>
+                            <option value="Tires">Tires</option>
+                            <option value="Tracks">Tracks</option>
+                            <option value="Misc">Misc</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryQty">Quantity</label>
+                        <input type="number" id="inventoryQty" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryMinStock">Minimum Stock Level</label>
+                        <input type="number" id="inventoryMinStock" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryDepot">Depot Location</label>
+                        <input type="text" id="inventoryDepot" placeholder="e.g., Delhi Main Depot" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('inventoryModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveInventory()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

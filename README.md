@@ -58,22 +58,38 @@ erDiagram
 
 ## ⚙️ Quick Start Setup (For Novices)
 
-Follow these 3 steps to get the full system running on your local machine:
+Follow these 5 steps to get the full system running on your local machine:
 
 ### 1. Database Setup
 Ensure you have **MySQL 8.0** installed. Run the following command to build the entire fleet structure:
 ```bash
-mysql -u root -p < database/schema.sql
+mysql -u user -puser < database/schema.sql
 ```
 
 ### 2. Environment Configuration
-Copy the `.env.example` file to a new file named `.env` and enter your database password:
+Copy `.env.example` to `.env` and keep local demo credentials:
 ```env
-DB_PASSWORD=your_mysql_password
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=mlops_db
+DB_USER=user
+DB_PASSWORD=user
 ```
 
-### 3. Run the ML Pipeline
-Execute the automated orchestrator to crunch the data and generate the first set of predictions:
+### 3. Install Backend Dependencies
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
+```
+
+### 4. Run Django Backend (Modular API Layer)
+```powershell
+python manage.py runserver
+```
+
+### 5. Run the ML Pipeline
+Execute the automated orchestrator to crunch data and update `health_scores`:
 ```powershell
 .\run_pipeline.ps1
 ```

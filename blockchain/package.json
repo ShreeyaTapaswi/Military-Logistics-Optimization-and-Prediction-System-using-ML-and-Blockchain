@@ -1,0 +1,19 @@
+{
+  "name": "military-base-blockchain",
+  "version": "1.0.0",
+  "description": "Blockchain layer for Military Base Asset Tracking — Vehicles, Spare Parts & Maintenance",
+  "scripts": {
+    "compile": "truffle compile",
+    "migrate": "truffle migrate --network development",
+    "migrate:reset": "truffle migrate --reset --network development",
+    "test": "truffle test --network development"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3"
+  },
+  "devDependencies": {
+    "truffle": "^5.11.5",
+    "chai": "^4.3.10",
+    "chai-as-promised": "^7.1.1"
+  }
+}

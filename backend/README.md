@@ -1,64 +1,89 @@
-# MLOPS — Django Backend
+# MLOPS Backend (Modular Django Scaffold)
 
-**Military Logistics Optimization & Prediction System**  
-Group G4 | PICT | Dept. of Computer Engineering | 2025–26
+This folder now contains a modular Django backend structure that separates:
 
----
+- API layer (request/response)
+- Service layer (orchestration and external gateways)
+- Repository layer (database querying)
 
-## Overview
+The backend is designed to sit between frontend, MySQL, ML pipeline, and blockchain services.
 
-The Django Backend serves as the primary bridge between the React frontend, the `mlops_db` MySQL database, and the offline Machine Learning predictive pipeline. 
+## Folder Structure
 
-Instead of Django creating and managing the migrations for the military hardware tables, this backend uses **Decoupled Architecture**: the tables are declared with `managed = False` in `models.py`.
+```text
+manage.py
+mlops_backend/
+	settings.py
+	urls.py
+	asgi.py
+	wsgi.py
+backend/
+	models.py
+	api/
+		serializers.py
+		views.py
+		urls.py
+	services/
+		container.py
+		fleet_service.py
+		operations_orchestrator.py
+		blockchain_gateway.py
+		ml_gateway.py
+	repositories/
+		vehicle_repository.py
+		health_repository.py
+```
 
----
+## Setup
 
-## Architecture
+1. Create virtual environment and install requirements:
 
-1. **Frontend to Backend**: React sends HTTP REST API requests to Django.
-2. **Backend to Database**: Django reads/writes to `mlops_db` using the `mysqlclient` (PyMySQL) engine.
-3. **Machine Learning**: The ML pipeline runs asynchronously as a cron job or scheduled task (`run_pipeline.ps1`). It pulls telemetry from `mlops_db`, crunches the ensemble models, and writes the `health_scores` directly back to the database.
-4. **Backend to Frontend**: Django simply queries the `health_scores` table and serves the ML predictions to the React dashboard.
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
+```
 
----
+2. Configure `.env` in repository root using your local values:
 
-## Setup Instructions
-
-### 1. Configure the Environment
-You must use environment variables to connect to the database. Inside the root of the project, copy the `.env.example` file to `.env`:
 ```env
 DB_NAME=mlops_db
-DB_USER=root
-DB_PASSWORD=shreeya@2026
+DB_USER=user
+DB_PASSWORD=user
 DB_HOST=localhost
 DB_PORT=3306
+SECRET_KEY=change-this-in-production
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+BLOCKCHAIN_ENABLED=True
+BLOCKCHAIN_STRICT_LAYER1=True
+ML_PYTHON_EXECUTABLE=python
 ```
-*(Note: Never push the `.env` file to GitHub!)*
 
-### 2. Install Requirements
-```bash
-pip install django djangorestframework django-environ pymysql
-```
+3. Run server:
 
-### 3. Run the Server
-Because the database is `managed=False`, you do **not** need to run `python manage.py migrate` for the core ML tables.
-Just run:
-```bash
+```powershell
 python manage.py runserver
 ```
 
----
+## Current API Endpoints
 
-## Models (`backend/models.py`)
+- `GET /api/health/` -> service health (DB + blockchain + ML gateway)
+- `GET /api/vehicles/` -> list vehicles with optional filters
+- `GET /api/vehicles/<vehicle_id>/health/` -> latest health score for a vehicle
+- `GET /api/fleet/summary/` -> fleet risk and status distribution
+- `POST /api/operations/vehicle-movement/` -> orchestrated movement flow
+- `POST /api/ml/run-inference/` -> trigger `run_inference.py`
 
-All models correspond 1:1 with the `schema.sql` definition.
-Key models include:
-* `Vehicle`: The core military asset.
-* `MaintainanceRecord`: Log of repairs. 
-* `VehicleTelemetry`: Sensor readings (speed, coolant, etc.)
-* `HealthScores`: The output table where the XGBoost & TabNet models deposit their predictions.
-* `TamperProofRecord`: Blockchain hash linking.
+## Orchestration Behavior
 
-## API Endpoints (Planned)
-* `/api/vehicles/` - List all vehicles
-* `/api/vehicles/<id>/health/` - Get the latest ML health score for a vehicle.
+- Layer 1 blockchain check runs first.
+- If `BLOCKCHAIN_STRICT_LAYER1=True`, Layer 1 failure blocks DB write.
+- On success (or non-strict mode), local audit and tamper hash rows are written.
+- Layer 2 audit write is attempted after DB persistence.
+- If Layer 2 fails, response marks status as `pending_retry`.
+
+## Note
+
+This phase adds modular backend scaffolding and operational entry points.
+Further hardening (retry workers, auth/RBAC, frontend wiring) is handled in next phases.

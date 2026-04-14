@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Army Vehicle Management System - Login</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-box glass">
+      <div class="logo"><img src="logo indian army.svg" alt="" width="100px" height="100px"></div>
+      <h1>AVMS</h1>
+      <p class="subtitle">Army Vehicle Management System</p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          Login
+        </button>
+
+        <p class="error-message" id="errorMessage">Invalid username or password</p>
+      </form>
+
+      <div
+        style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-secondary);">
+        <p><strong>Demo Credentials:</strong></p>
+        <p style="margin-top: 8px;">Super Admin: <code>superadmin</code> / <code>admin123</code></p>
+        <p>Delhi Base: <code>delhi_admin</code> / <code>delhi123</code></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorMessage = document.getElementById('errorMessage');
+
+      const user = AppData.authenticateUser(username, password);
+
+      if (user) {
+        AppData.setSession(user);
+        AppData.initializeData();
+        window.location.href = 'dashboard.html';
+      } else {
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+          errorMessage.style.display = 'none';
+        }, 3000);
+      }
+    });
+
+    // If already logged in, redirect
+    if (AppData.getSession()) {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+
+</html>

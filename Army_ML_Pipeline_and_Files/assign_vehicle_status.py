@@ -22,20 +22,11 @@ import numpy as np
 from datetime import datetime, timedelta, date
 from collections import defaultdict
 import sys, io
+from db_connector import DB_CONFIG
 
 # Fix Windows CP1252 console encoding
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-
-# ── DB Config ────────────────────────────────────────────────
-DB_CONFIG = {
-    'host':     'localhost',
-    'port':     3306,
-    'database': 'mlops_db',
-    'user':     'root',
-    'password': 'shreeya@2026',
-    'charset':  'utf8mb4',
-}
 
 SEVERITY_RANK = {'critical': 4, 'major': 3, 'minor': 2, 'warning': 1}
 STATUS_ORDER  = ['Critical', 'Poor', 'Attention', 'Good', 'Excellent']
