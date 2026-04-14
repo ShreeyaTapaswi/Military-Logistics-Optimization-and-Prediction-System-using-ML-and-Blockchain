@@ -60,6 +60,10 @@ generate_pdf_docs.py
 Thumbs.db
 desktop.ini
 
+# ── JavaScript Dependencies ──────────────────────────────────
+node_modules/
+blockchain/node_modules/
+
 # ── Jupyter Notebooks (if any) ───────────────────────────────
 .ipynb_checkpoints/
 

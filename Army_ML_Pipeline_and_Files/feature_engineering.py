@@ -28,16 +28,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-
-# ── DB Config ────────────────────────────────────────────────
-DB_CONFIG = {
-    'host':     'localhost',
-    'port':     3306,
-    'database': 'mlops_db',
-    'user':     'root',
-    'password': 'shreeya@2026',
-    'charset':  'utf8mb4',
-}
+from db_connector import DB_CONFIG
 
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
