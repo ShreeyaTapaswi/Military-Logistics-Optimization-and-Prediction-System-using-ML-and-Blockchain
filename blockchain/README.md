@@ -33,6 +33,19 @@ Private Ethereum blockchain layer (Ganache) that provides **tamper-proof recordi
 3. **Python** 3.10+ with pip
 4. **Truffle** (installed via npm)
 
+### Why `node_modules` is ignored
+
+- `node_modules` is generated content and should be recreated with `npm install`.
+- Keeping it out of git avoids huge commits and merge noise.
+- If VS Code still shows the folder in red, that is usually an ignored-resource decoration or stale UI state, not a pending tracked change.
+- Verify with `git status --short --ignored`.
+
+Run the preflight helper from repo root:
+
+```powershell
+.\scripts\preflight_validation.ps1
+```
+
 ---
 
 ## Setup & Deployment
