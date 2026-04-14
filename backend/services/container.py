@@ -9,6 +9,7 @@ from backend.services.blockchain_gateway import BlockchainGateway
 from backend.services.fleet_service import FleetService
 from backend.services.ml_gateway import MLGateway
 from backend.services.operations_orchestrator import OperationsOrchestrator
+from backend.services.workflow_service import WorkflowService
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class ServiceContainer:
     blockchain_gateway: BlockchainGateway
     ml_gateway: MLGateway
     operations_orchestrator: OperationsOrchestrator
+    workflow_service: WorkflowService
 
 
 @lru_cache(maxsize=1)
@@ -40,9 +42,16 @@ def get_service_container() -> ServiceContainer:
         strict_layer1=settings.BLOCKCHAIN_STRICT_LAYER1,
     )
 
+    workflow_service = WorkflowService(
+        operations_orchestrator=operations_orchestrator,
+        ml_gateway=ml_gateway,
+        fleet_service=fleet_service,
+    )
+
     return ServiceContainer(
         fleet_service=fleet_service,
         blockchain_gateway=blockchain_gateway,
         ml_gateway=ml_gateway,
         operations_orchestrator=operations_orchestrator,
+        workflow_service=workflow_service,
     )

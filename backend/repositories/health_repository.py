@@ -13,6 +13,13 @@ class HealthRepository:
             .first()
         )
 
+    def get_latest_by_vehicle_no(self, vehicle_no: str) -> Optional[HealthScores]:
+        return (
+            HealthScores.objects.filter(vehicle__vehicle_no=vehicle_no)
+            .order_by("-assessment_date", "-score_id")
+            .first()
+        )
+
     def get_fleet_summary(self) -> Dict[str, object]:
         vehicle_ids = (
             HealthScores.objects.values_list("vehicle_id", flat=True)

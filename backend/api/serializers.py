@@ -57,3 +57,7 @@ class VehicleMovementRequestSerializer(serializers.Serializer):
 
 class InferenceTriggerSerializer(serializers.Serializer):
     timeout_seconds = serializers.IntegerField(required=False, min_value=60, max_value=7200, default=1200)
+
+
+class MovementInferenceWorkflowSerializer(VehicleMovementRequestSerializer):
+    timeout_seconds = serializers.IntegerField(required=False, min_value=60, max_value=7200, default=1200)

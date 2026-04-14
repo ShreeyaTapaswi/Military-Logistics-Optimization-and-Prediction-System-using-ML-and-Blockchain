@@ -21,5 +21,8 @@ class FleetService:
     def get_latest_health(self, vehicle_id: str):
         return self.health_repository.get_latest_by_vehicle_id(vehicle_id)
 
+    def get_latest_health_by_vehicle_no(self, vehicle_no: str):
+        return self.health_repository.get_latest_by_vehicle_no(vehicle_no)
+
     def get_fleet_summary(self):
         return self.health_repository.get_fleet_summary()

@@ -43,6 +43,19 @@ The project follows a modular, 4-tier architecture designed for scalability and 
 
 ---
 
+## 📁 Modular Repository Layout
+
+The root is intentionally limited to core modules:
+
+- `Army_ML_Pipeline_and_Files/` -> ML training and inference pipeline
+- `backend/` and `mlops_backend/` -> modular Django API backend
+- `blockchain/` -> smart contracts and blockchain service bridge
+- `frontend/` -> login/dashboard UI (`index.html`, `dashboard.html`, `css/`, `js/`, `assets/`)
+- `database/` -> schema and database docs
+- `docs/` -> architecture, installation, and technical docs
+
+---
+
 ## 📂 Project Anatomy
 
 ```bash
@@ -53,7 +66,7 @@ The project follows a modular, 4-tier architecture designed for scalability and 
 │   └── blockchain_service/      # Python ↔ Blockchain bridge (Web3.py)
 ├── database/                    # Enterprise MySQL Schema & Guides
 ├── docs/                        # Detailed ER Diagrams & Technical references
-├── js/ & css/                   # Frontend Dashboard assets
+├── frontend/                    # Frontend module (HTML, CSS, JS, assets)
 ├── mlops_backend/               # Django project core settings
 └── run_pipeline.ps1             # Total System Orchestrator
 ```
@@ -66,7 +79,7 @@ The project follows a modular, 4-tier architecture designed for scalability and 
 1.  Ensure **MySQL 8.0** is running.
 2.  Import the schema:
     ```bash
-    mysql -u root -p < database/schema.sql
+    mysql -u user -puser < database/schema.sql
     ```
 
 ### Phase 2: Blockchain Deployment
@@ -96,6 +109,8 @@ The project follows a modular, 4-tier architecture designed for scalability and 
     ```powershell
     .\run_pipeline.ps1
     ```
+3.  **Open Dashboard UI:**
+    Open `frontend/index.html` in browser.
 
 ---
 
@@ -110,6 +125,11 @@ The project follows a modular, 4-tier architecture designed for scalability and 
 
 ## 📊 Database Reference
 For the full architectural breakdown, see our **[Attribute-Level ER Diagram →](docs/attribute-level-er-diagram.md)**.
+
+### 6. Open Frontend
+Open the dashboard login from:
+
+- `frontend/index.html`
 
 ---
 

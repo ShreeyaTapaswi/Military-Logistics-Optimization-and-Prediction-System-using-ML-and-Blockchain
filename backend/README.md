@@ -27,6 +27,7 @@ backend/
 		container.py
 		fleet_service.py
 		operations_orchestrator.py
+		workflow_service.py
 		blockchain_gateway.py
 		ml_gateway.py
 	repositories/
@@ -73,6 +74,7 @@ python manage.py runserver
 - `GET /api/vehicles/<vehicle_id>/health/` -> latest health score for a vehicle
 - `GET /api/fleet/summary/` -> fleet risk and status distribution
 - `POST /api/operations/vehicle-movement/` -> orchestrated movement flow
+- `POST /api/workflows/vehicle-movement-inference/` -> operation + ML inference + Layer 2 prediction logging
 - `POST /api/ml/run-inference/` -> trigger `run_inference.py`
 
 ## Orchestration Behavior

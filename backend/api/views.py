@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from backend.api.serializers import (
     HealthScoreSerializer,
     InferenceTriggerSerializer,
+    MovementInferenceWorkflowSerializer,
     VehicleMovementRequestSerializer,
     VehicleQuerySerializer,
     VehicleSerializer,
@@ -98,3 +99,17 @@ class TriggerInferenceView(APIView):
 
         http_status = status.HTTP_200_OK if result.get("success") else status.HTTP_500_INTERNAL_SERVER_ERROR
         return Response(result, status=http_status)
+
+
+class MovementInferenceWorkflowView(APIView):
+    def post(self, request):
+        serializer = MovementInferenceWorkflowSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        container = get_service_container()
+        result = container.workflow_service.run_vehicle_movement_and_inference(
+            serializer.validated_data
+        )
+
+        http_status = status.HTTP_200_OK if result.success else status.HTTP_400_BAD_REQUEST
+        return Response(result.to_dict(), status=http_status)

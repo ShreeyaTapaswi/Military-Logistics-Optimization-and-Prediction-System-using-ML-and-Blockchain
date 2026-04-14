@@ -96,3 +96,28 @@ class BlockchainGateway:
             mysql_row_data=mysql_row_data,
             affected_asset=affected_asset,
         )
+
+    def record_ml_prediction(
+        self,
+        base_id: str,
+        prediction_type: str,
+        description: str,
+        severity: str,
+        affected_asset: str,
+        confidence: int,
+        recommended_action: str,
+    ) -> Dict[str, Any]:
+        if not self.enabled:
+            return {"success": False, "error": "BLOCKCHAIN_DISABLED"}
+        if not self.is_ready:
+            return {"success": False, "error": self._last_error or "BLOCKCHAIN_NOT_READY"}
+
+        return self._bridge.record_ml_prediction(
+            base_id=base_id,
+            prediction_type=prediction_type,
+            description=description,
+            severity=severity,
+            affected_asset=affected_asset,
+            confidence=confidence,
+            recommended_action=recommended_action,
+        )

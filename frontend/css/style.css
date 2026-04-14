@@ -32,7 +32,7 @@
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: url("bgimg.jpg");
+  background: url("../assets/bgimg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -61,7 +61,7 @@ button {
   justify-content: center;
   position: relative;
   padding: 20px;
-  background: linear-gradient(rgba(28, 42, 31, 0.75), rgba(13, 35, 13, 0.8)), url("../bgimg.jpg");
+  background: linear-gradient(rgba(28, 42, 31, 0.75), rgba(13, 35, 13, 0.8)), url("../assets/bgimg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
