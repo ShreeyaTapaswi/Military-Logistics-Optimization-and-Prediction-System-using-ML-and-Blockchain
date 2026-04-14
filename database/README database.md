@@ -93,7 +93,7 @@ python Army_ML_Pipeline_and_Files\run_inference.py
 
 ## ER Diagram Mapping
 
-The database follows a normalized 12-table structure. For a complete, attribute-level view including primary and foreign keys, see the **[Detailed ER Diagram →](../docs/detailed-er-diagram.md)**.
+The database follows a normalized 12-table structure. For a complete, attribute-level view including primary keys, foreign keys, and data types, see the **[Detailed ER Diagram →](../docs/attribute-level-er-diagram.md)**.
 
 ```mermaid
 erDiagram

@@ -35,7 +35,7 @@ The system operates in a continuous loop to ensure operational readiness:
 
 ## 📊 Database Architecture (ER Diagram)
 
-The system relies on a highly normalized 12-table structure. Below is the conceptual relationship. For a full attribute-level view, see the **[Detailed ER Diagram →](docs/detailed-er-diagram.md)**.
+The system relies on a highly normalized 12-table structure. Below is the conceptual relationship. For a full attribute-level view with data types, see the **[Detailed ER Diagram →](docs/attribute-level-er-diagram.md)**.
 
 ```mermaid
 erDiagram
