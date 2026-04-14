@@ -35,7 +35,7 @@ The system operates in a continuous loop to ensure operational readiness:
 
 ## 📊 Database Architecture (ER Diagram)
 
-The system relies on a highly normalized 12-table structure. Below is the conceptual relationship:
+The system relies on a highly normalized 12-table structure. Below is the conceptual relationship. For a full attribute-level view, see the **[Detailed ER Diagram →](docs/detailed-er-diagram.md)**.
 
 ```mermaid
 erDiagram
@@ -44,7 +44,7 @@ erDiagram
     VEHICLE ||--o{ MISSION_LOG : "performs"
     MAINTENANCE ||--o{ SPARE_PARTS : "requires"
     MAINTENANCE ||--o{ TAMPER_PROOF : "anchors to"
-    HEALTH_SCORE ||--|| TAMPER_PROOF : "verifies"
+    HEALTH_SCORE_RECORD ||--|| HEALTH_SCORES : "blockchain ref"
     ADMIN ||--o{ AUDIT_LOG : "performs actions"
 ```
 

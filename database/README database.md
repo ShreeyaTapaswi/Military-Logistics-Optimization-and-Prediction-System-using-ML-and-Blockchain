@@ -93,15 +93,18 @@ python Army_ML_Pipeline_and_Files\run_inference.py
 
 ## ER Diagram Mapping
 
-```
-Vehicle  ──generates──▶  health_score_record
-Vehicle  ──has──────────▶ maintainance_record
-Vehicle  ──have─────────▶ spare_parts
-health_score_record  ──stored_in──▶ tamper_proof_record
-maintainance_record  ──stored_in──▶ tamper_proof_record
-spare_parts          ──stored_in──▶ tamper_proof_record
-Admin    ──verifies──────▶ tamper_proof_record
-Admin    ──logs──────────▶ audit_log
+The database follows a normalized 12-table structure. For a complete, attribute-level view including primary and foreign keys, see the **[Detailed ER Diagram →](../docs/detailed-er-diagram.md)**.
+
+```mermaid
+erDiagram
+    Vehicle  ──generates──▶  health_score_record
+    Vehicle  ──has──────────▶ maintainance_record
+    Vehicle  ──have─────────▶ spare_parts
+    health_score_record  ──stored_in──▶ health_scores
+    maintainance_record  ──stored_in──▶ tamper_proof_record
+    spare_parts          ──stored_in──▶ tamper_proof_record
+    Admin    ──verifies──────▶ tamper_proof_record
+    Admin    ──logs──────────▶ audit_log
 ```
 
 ---
