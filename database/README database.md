@@ -119,13 +119,3 @@ Admin    ──logs──────────▶ AuditLog
 
 ---
 
-## Team
-
-| Name | Roll No |
-|---|---|
-| Shreeya Tapaswi | 21446 |
-| Vedant Karne | 21449 |
-| Yash Vidhate | 21453 |
-| Samruddhi Lakare | 21466 |
-
-Guide: Prof. Shweta Shah
