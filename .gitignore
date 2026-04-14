@@ -51,6 +51,12 @@ tmp/
 # PDF generator — internal tool, not part of the pipeline
 generate_pdf_docs.py
 
+# ── Private Planning Notes (local only) ──────────────────────
+plan.md
+context.md
+docs/plan.md
+docs/context.md
+
 # ── IDE / OS Files ───────────────────────────────────────────
 .vscode/
 .idea/
