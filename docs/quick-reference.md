@@ -31,6 +31,12 @@ generate_data_env\Scripts\Activate.ps1
 
 # Install dependencies
 pip install -r Army_ML_Pipeline_and_Files\requirements.txt
+
+# Initialize database without mysql CLI in PATH
+python scripts\init_db.py --user root --password root
+
+# Register blockchain base admin + authorize backend (Ganache)
+python scripts\setup_blockchain_demo.py --base-id BASE_PUNE --admin-index 2
 ```
 
 ---
