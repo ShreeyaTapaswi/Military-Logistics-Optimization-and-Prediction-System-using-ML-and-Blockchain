@@ -6,7 +6,7 @@ from typing import Any, Dict
 class MLGateway:
     def __init__(self, pipeline_root: Path, python_executable: str = "python"):
         self.pipeline_root = Path(pipeline_root)
-        self.python_executable = python_executable
+        self.python_executable = str(python_executable)
 
     def health(self) -> Dict[str, Any]:
         script_path = self.pipeline_root / "run_inference.py"
@@ -48,6 +48,13 @@ class MLGateway:
                 "returncode": completed.returncode,
                 "stdout_tail": "\n".join(completed.stdout.splitlines()[-30:]),
                 "stderr_tail": "\n".join(completed.stderr.splitlines()[-30:]),
+            }
+        except FileNotFoundError:
+            return {
+                "success": False,
+                "message": f"Python executable not found: {self.python_executable}",
+                "stdout_tail": "",
+                "stderr_tail": "",
             }
         except subprocess.TimeoutExpired:
             return {

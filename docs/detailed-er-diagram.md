@@ -1,4 +1,4 @@
-# 📊 Detailed ER Diagram — MLOPS
+# 📊 Detailed ER Diagram- MLOPS
 
 This document provides a comprehensive attribute-level Entity Relationship (ER) Diagram for the Military Logistics Optimization & Prediction System database (`mlops_db`).
 

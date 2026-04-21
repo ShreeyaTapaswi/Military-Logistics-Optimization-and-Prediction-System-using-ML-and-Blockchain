@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /**
  * ============================================================
- *  LAYER 2  —  AUDIT TRAIL  (Immutable Audit Log & ML Predictions)
+ *  LAYER 2 -  AUDIT TRAIL  (Immutable Audit Log & ML Predictions)
  * ============================================================
  *
  * After data flows through MySQL and the ML pipeline, the results
@@ -132,7 +132,7 @@ contract AuditTrail {
         emit BackendRevoked(_backend);
     }
 
-    // ═══════════ LAYER 2 — AUDIT LOG ═══════════
+    // ═══════════ LAYER 2- AUDIT LOG ═══════════
 
     /**
      * @notice Write an immutable audit entry after MySQL persistence.
@@ -183,7 +183,7 @@ contract AuditTrail {
         return entryId;
     }
 
-    // ═══════════ LAYER 2 — ML PREDICTIONS ═══════════
+    // ═══════════ LAYER 2- ML PREDICTIONS ═══════════
 
     /**
      * @notice Store an ML prediction on-chain for verifiability.
@@ -328,7 +328,7 @@ contract AuditTrail {
     }
 
     /**
-     * @notice Verify data integrity — compare stored hash with a provided hash.
+     * @notice Verify data integrity- compare stored hash with a provided hash.
      */
     function verifyDataIntegrity(uint256 _auditEntryId, bytes32 _expectedHash)
         external view

@@ -1,6 +1,6 @@
 """
 ============================================================
- MLOPS — ML Pipeline Database Connector
+ MLOPS- ML Pipeline Database Connector
  Military Logistics Optimization & Prediction System
  Group G4 | PICT | 2025-26
 ============================================================
@@ -16,7 +16,7 @@
        write_health_score,
    )
 
- Credentials loaded from .env — never hardcoded.
+ Credentials loaded from .env- never hardcoded.
 ============================================================
 """
 
@@ -243,7 +243,7 @@ def write_health_score(score_dict: Dict[str, Any], logged_by: str = 'ADM001') ->
     """
     Atomically writes one vehicle's health prediction by:
       1. Inserting into health_scores       (ML output)
-      2. Inserting into health_score_record (ER entity — links to blockchain)
+      2. Inserting into health_score_record (ER entity- links to blockchain)
       3. Inserting into tamper_proof_record (blockchain hash anchor)
       4. Inserting into audit_log           (immutable action trail)
 
@@ -271,7 +271,7 @@ def write_health_score(score_dict: Dict[str, Any], logged_by: str = 'ADM001') ->
 
     Returns
     -------
-    bool — True on success, False on error
+    bool- True on success, False on error
     """
     vid         = score_dict['vehicle_id']
     now         = datetime.utcnow()
@@ -329,7 +329,7 @@ def write_health_score(score_dict: Dict[str, Any], logged_by: str = 'ADM001') ->
             'health_score',
             hsr_id,
             now,
-            None,   # verified_by — NULL until an Admin explicitly verifies
+            None,   # verified_by- NULL until an Admin explicitly verifies
         ))
 
         # 3. Insert into health_scores (ML output)

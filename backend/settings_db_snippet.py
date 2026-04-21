@@ -1,13 +1,13 @@
 """
 ============================================================
- MLOPS — Django settings.py — Database Configuration
+ MLOPS- Django settings.py- Database Configuration
  Military Logistics Optimization & Prediction System
 ============================================================
  INSTRUCTIONS:
    1. pip install python-decouple mysqlclient
    2. Create a .env file in your Django project root (see below)
    3. Copy the DATABASES block into your settings.py
-   4. Keep .env in .gitignore — NEVER commit passwords
+   4. Keep .env in .gitignore- NEVER commit passwords
 ============================================================
 
 .env file template (create at project root, next to manage.py):
@@ -66,7 +66,7 @@ DATABASES = {
 # If using the Admin model only for display (not auth), leave as-is.
 
 # ── Migration note ───────────────────────────────────────────
-# health_scores is managed=False — Django won't create/alter it.
+# health_scores is managed=False- Django won't create/alter it.
 # All other tables are managed=True but the schema is already applied
 # via: mysql -u root -p < database/schema.sql
 #

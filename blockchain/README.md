@@ -1,10 +1,10 @@
-# Blockchain Module — Military Base Asset Tracking
+# Blockchain Module- Military Base Asset Tracking
 
 Private Ethereum blockchain layer (Ganache) that provides **tamper-proof recording** and **verifiable audit trails** for vehicle movements, spare-part movements, and maintenance logs across army bases.
 
 ---
 
-## Architecture — Two Blockchain Layers
+## Architecture- Two Blockchain Layers
 
 ```
 ┌──────────────┐      ┌──────────────────────┐      ┌───────────┐
@@ -28,7 +28,7 @@ Private Ethereum blockchain layer (Ganache) that provides **tamper-proof recordi
 
 ## Prerequisites
 
-1. **Ganache** — running on `http://127.0.0.1:7545` (default GUI port)
+1. **Ganache**- running on `http://127.0.0.1:7545` (default GUI port)
 2. **Node.js** v16+ and npm
 3. **Python** 3.10+ with pip
 4. **Truffle** (installed via npm)
@@ -111,7 +111,7 @@ from blockchain_service import BlockchainService
 
 bc = BlockchainService()
 
-# Layer 1 — called when base admin takes an action
+# Layer 1- called when base admin takes an action
 result = bc.add_vehicle_movement(
     admin_address="0x...",
     vehicle_number="MH-12-AB-1234",
@@ -123,7 +123,7 @@ result = bc.add_vehicle_movement(
 
 # --- MySQL write happens here (Django ORM) ---
 
-# Layer 2 — called after MySQL + ML
+# Layer 2- called after MySQL + ML
 from blockchain_service.utils import compute_data_hash
 data_hash = compute_data_hash(mysql_row_dict)
 
@@ -156,8 +156,8 @@ bc.store_ml_prediction(
 blockchain/
 ├── contracts/
 │   ├── Migrations.sol              # Truffle helper
-│   ├── AssetLedger.sol             # LAYER 1 — entry validation & recording
-│   └── AuditTrail.sol              # LAYER 2 — audit log & ML predictions
+│   ├── AssetLedger.sol             # LAYER 1- entry validation & recording
+│   └── AuditTrail.sol              # LAYER 2- audit log & ML predictions
 ├── migrations/
 │   ├── 1_initial_migration.js
 │   ├── 2_deploy_asset_ledger.js

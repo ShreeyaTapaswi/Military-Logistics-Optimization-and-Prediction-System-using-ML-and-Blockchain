@@ -1,12 +1,12 @@
 """
-contract_interface.py  —  Main Python ↔ Blockchain bridge.
+contract_interface.py -  Main Python ↔ Blockchain bridge.
 
 Usage from Django views / services:
     from blockchain_service import BlockchainService
 
     bc = BlockchainService()
 
-    # Layer 1 — Base Admin records a vehicle removal (base_id enforced on-chain)
+    # Layer 1- Base Admin records a vehicle removal (base_id enforced on-chain)
     tx = bc.add_vehicle_movement(
         admin_address="0x...",
         base_id="JODHPUR_AFB",
@@ -18,7 +18,7 @@ Usage from Django views / services:
     # On-chain: Base Admin can only write to their registered base.
     # On-chain: Super Admin (account[0]) can write to ANY base.
 
-    # Layer 2 — log audit entry after MySQL write
+    # Layer 2- log audit entry after MySQL write
     bc.log_audit_entry(
         base_id="JODHPUR_AFB",
         category="VEHICLE_MOVEMENT",
@@ -29,7 +29,7 @@ Usage from Django views / services:
         affected_asset="MH-12-AB-1234"
     )
 
-    # Layer 2 — store ML prediction
+    # Layer 2- store ML prediction
     bc.store_ml_prediction(
         base_id="JODHPUR_AFB",
         prediction_type="MAINTENANCE_ALERT",
@@ -170,13 +170,13 @@ class BlockchainService:
         return {"tx_hash": receipt.transactionHash.hex(), "status": receipt.status}
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 1  —  VEHICLE MOVEMENTS
+    #  LAYER 1 -  VEHICLE MOVEMENTS
     # ══════════════════════════════════════════════════════
 
     def add_vehicle_movement(
         self,
         admin_address: str,
-        base_id: str,             # e.g. "JODHPUR_AFB" — enforced on-chain per role
+        base_id: str,             # e.g. "JODHPUR_AFB"- enforced on-chain per role
         vehicle_number: str,
         movement_type: str,       # "ADDITION" | "REMOVAL" | "TRANSFER"
         quantity_change: int,
@@ -212,7 +212,7 @@ class BlockchainService:
         }
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 1  —  SPARE PART MOVEMENTS
+    #  LAYER 1 -  SPARE PART MOVEMENTS
     # ══════════════════════════════════════════════════════
 
     def add_spare_part_movement(
@@ -248,7 +248,7 @@ class BlockchainService:
         }
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 1  —  MAINTENANCE RECORDS
+    #  LAYER 1 -  MAINTENANCE RECORDS
     # ══════════════════════════════════════════════════════
 
     def add_maintenance_record(
@@ -282,7 +282,7 @@ class BlockchainService:
         }
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 2  —  AUDIT LOG
+    #  LAYER 2 -  AUDIT LOG
     # ══════════════════════════════════════════════════════
 
     def log_audit_entry(
@@ -319,7 +319,7 @@ class BlockchainService:
         }
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 2  —  ML PREDICTIONS
+    #  LAYER 2 -  ML PREDICTIONS
     # ══════════════════════════════════════════════════════
 
     def store_ml_prediction(
@@ -355,7 +355,7 @@ class BlockchainService:
         }
 
     # ══════════════════════════════════════════════════════
-    #  READ FUNCTIONS  —  HISTORY & DETAILS
+    #  READ FUNCTIONS -  HISTORY & DETAILS
     # ══════════════════════════════════════════════════════
 
     def get_vehicle_history(self, vehicle_number: str) -> list[dict]:

@@ -1,5 +1,5 @@
 """
-blockchain_service  —  Python Web3 bridge for Django integration.
+blockchain_service -  Python Web3 bridge for Django integration.
 
 Your Django teammate imports from this package:
     from blockchain_service import BlockchainService       # low-level

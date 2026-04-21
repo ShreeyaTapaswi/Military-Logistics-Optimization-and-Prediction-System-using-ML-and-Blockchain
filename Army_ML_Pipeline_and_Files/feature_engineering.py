@@ -256,7 +256,7 @@ def load_labels(conn) -> pd.DataFrame:
         WHERE  vehicle_status IS NOT NULL
     """
     labels = pd.read_sql(query, conn)
-    # One record per vehicle — deduplicate just in case
+    # One record per vehicle- deduplicate just in case
     labels = labels.drop_duplicates(subset='vehicle_id', keep='last')
     print(f"    Loaded {len(labels):,} labeled vehicles.")
     return labels

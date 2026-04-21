@@ -59,7 +59,7 @@ The root is intentionally limited to core modules:
 ## 📂 Project Anatomy
 
 ```bash
-├── Army_ML_Pipeline_and_Files/  # The 'Brain' — ML training, inference & logic
+├── Army_ML_Pipeline_and_Files/  # The 'Brain'- ML training, inference & logic
 ├── backend/                     # Modular Django App (Models, Repositories, Services)
 ├── blockchain/                  # Private Ethereum Layer (Solidity Contracts & Truffle)
 │   ├── contracts/               # AssetLedger & AuditTrail smart contracts
@@ -81,6 +81,10 @@ The root is intentionally limited to core modules:
     ```bash
     mysql -u user -puser < database/schema.sql
     ```
+3.  Seed richer demo rows for all major tables:
+    ```bash
+    python scripts/seed_demo_data.py --user root --password root
+    ```
 
 ### Phase 2: Blockchain Deployment
 1.  Launch **Ganache** (GUI or CLI).
@@ -89,6 +93,10 @@ The root is intentionally limited to core modules:
     cd blockchain
     npm install
     truffle migrate --network development
+    ```
+3.  Register base-admin wallets on-chain:
+    ```bash
+    python scripts/setup_blockchain_demo.py --register-default-bases
     ```
 
 ### Phase 3: Backend & Environment
@@ -116,10 +124,20 @@ The root is intentionally limited to core modules:
 
 ## 📡 Modern API Interface (REST)
 
+*   `POST /api/auth/login/`: Database-backed admin authentication with role/base metadata.
 *   `GET /api/fleet/summary/`: High-level readiness metrics for the entire fleet.
-*   `GET /api/vehicles/{id}/health/`: Detailed predictive analysis for a specific asset.
-*   `POST /api/operations/vehicle-movement/`: Execute a blockchain-validated movement.
-*   `POST /api/ml/run-inference/`: Manually trigger the fleet health refresh.
+*   `GET /api/vehicles/`: Fleet vehicle listing.
+*   `POST /api/vehicles/create/`: Create a specific vehicle (plate/base/status) with blockchain + audit logging.
+*   `POST /api/vehicles/operate/`: Add or reduce vehicle count with blockchain and audit trail recording.
+*   `PUT /api/vehicles/{vehicle_id}/`: Update vehicle metadata/status with RBAC enforcement.
+*   `GET /api/maintenance/`: Role-scoped maintenance list (uses `actor_user_id`).
+*   `POST /api/maintenance/`: Create maintenance entry (MySQL + blockchain event).
+*   `PUT/DELETE /api/maintenance/{record_id}/`: Modify/remove maintenance with RBAC + immutable audit.
+*   `GET /api/inventory/`: Spare parts list.
+*   `POST /api/inventory/`: Add spare parts movement (MySQL + blockchain event).
+*   `PUT/DELETE /api/inventory/{part_id}/`: Update/remove inventory rows with RBAC and audit logging.
+*   `GET /api/ml/latest/`: Latest prediction freshness status (`is_stale`, next due date, scoped predictions).
+*   `POST /api/ml/run-inference/`: Manually trigger fleet health refresh (super admin only).
 
 ---
 
@@ -130,6 +148,29 @@ For the full architectural breakdown, see our **[Attribute-Level ER Diagram →]
 Open the dashboard login from:
 
 - `frontend/index.html`
+
+---
+
+## Demo Login Credentials
+
+- Super Admin
+    - Username: `arjun.sharma`
+    - Password: `Admin@1234`
+- Base Admin (Pune)
+    - Username: `priya.patil`
+    - Password: `Base@5678`
+- Base Admin (Delhi)
+    - Username: `rohan.verma`
+    - Password: `Base@9012`
+- Base Admin (Leh)
+    - Username: `aman.rawat`
+    - Password: `Base@1122`
+- Base Admin (Jaisalmer)
+    - Username: `kavya.singh`
+    - Password: `Base@3456`
+- Base Admin (Kolkata)
+    - Username: `neha.iyer`
+    - Password: `Base@7788`
 
 ---
 

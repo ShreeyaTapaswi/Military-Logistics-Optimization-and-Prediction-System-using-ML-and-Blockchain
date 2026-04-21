@@ -1,7 +1,7 @@
 {
   "name": "military-base-blockchain",
   "version": "1.0.0",
-  "description": "Blockchain layer for Military Base Asset Tracking — Vehicles, Spare Parts & Maintenance",
+  "description": "Blockchain layer for Military Base Asset Tracking- Vehicles, Spare Parts & Maintenance",
   "scripts": {
     "compile": "truffle compile",
     "migrate": "truffle migrate --network development",

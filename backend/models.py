@@ -1,6 +1,6 @@
 """
 ============================================================
- MLOPS — Django ORM Models
+ MLOPS- Django ORM Models
  Military Logistics Optimization & Prediction System
  Group G4 | PICT | 2025-26
 ============================================================
@@ -14,11 +14,11 @@ from django.db import models
 
 
 # ============================================================
-#  PART A — CORE ER TABLES
+#  PART A- CORE ER TABLES
 # ============================================================
 
 class Admin(models.Model):
-    """System users — Super Admin and Base Admin."""
+    """System users- Super Admin and Base Admin."""
 
     ROLE_CHOICES = [
         ('super_admin', 'Super Admin'),
@@ -59,7 +59,7 @@ class Vehicle(models.Model):
     type               = models.CharField(max_length=50)
     model              = models.CharField(max_length=100)
     manufacture_date   = models.DateField()
-    # vehicle_age is a generated/stored column in MySQL — read-only in Django
+    # vehicle_age is a generated/stored column in MySQL- read-only in Django
     vehicle_age        = models.IntegerField(editable=False, null=True, blank=True)
     city               = models.CharField(max_length=100)
     state              = models.CharField(max_length=100)
@@ -74,7 +74,7 @@ class Vehicle(models.Model):
         db_table = 'Vehicle'
 
     def __str__(self):
-        return f"{self.vehicle_no} — {self.type} ({self.model})"
+        return f"{self.vehicle_no}- {self.type} ({self.model})"
 
 
 class HealthScoreRecord(models.Model):
@@ -96,7 +96,7 @@ class HealthScoreRecord(models.Model):
         db_table = 'health_score_record'
 
     def __str__(self):
-        return f"{self.health_score_id} — Vehicle {self.vehicle_id} | Risk {self.risk_score}"
+        return f"{self.health_score_id}- Vehicle {self.vehicle_id} | Risk {self.risk_score}"
 
 
 class MaintainanceRecord(models.Model):
@@ -124,7 +124,7 @@ class MaintainanceRecord(models.Model):
         db_table = 'maintainance_record'
 
     def __str__(self):
-        return f"{self.record_id} — {self.vehicle_id} on {self.service_date} ({self.service_type})"
+        return f"{self.record_id}- {self.vehicle_id} on {self.service_date} ({self.service_type})"
 
 
 class SpareParts(models.Model):
@@ -150,12 +150,12 @@ class SpareParts(models.Model):
         db_table = 'spare_parts'
 
     def __str__(self):
-        return f"{self.part_name} (Qty: {self.quantity}) — Vehicle {self.vehicle_id}"
+        return f"{self.part_name} (Qty: {self.quantity})- Vehicle {self.vehicle_id}"
 
 
 class TamperProofRecord(models.Model):
     """
-    Blockchain anchor — SHA-256 hash of every critical record.
+    Blockchain anchor- SHA-256 hash of every critical record.
     Immutable once written; verified by Admin.
     """
 
@@ -215,7 +215,7 @@ class AuditLog(models.Model):
 
 
 # ============================================================
-#  PART B — SUPPORTING OPERATIONAL TABLES
+#  PART B- SUPPORTING OPERATIONAL TABLES
 # ============================================================
 
 class VehicleTelemetry(models.Model):
@@ -250,7 +250,7 @@ class VehicleTelemetry(models.Model):
         ordering = ['-recorded_at']
 
     def __str__(self):
-        return f"Telemetry {self.telemetry_id} — Vehicle {self.vehicle_id} @ {self.recorded_at}"
+        return f"Telemetry {self.telemetry_id}- Vehicle {self.vehicle_id} @ {self.recorded_at}"
 
 
 class OperationalLog(models.Model):
@@ -287,7 +287,7 @@ class OperationalLog(models.Model):
         ordering = ['-mission_date']
 
     def __str__(self):
-        return f"{self.log_id} — {self.vehicle_id} | {self.mission_type} on {self.mission_date}"
+        return f"{self.log_id}- {self.vehicle_id} | {self.mission_type} on {self.mission_date}"
 
 
 class DiagnosticCode(models.Model):
@@ -321,7 +321,7 @@ class DiagnosticCode(models.Model):
 
     def __str__(self):
         status = 'ACTIVE' if self.is_active else 'resolved'
-        return f"{self.fault_code} [{self.severity}] — {self.vehicle_id} ({status})"
+        return f"{self.fault_code} [{self.severity}]- {self.vehicle_id} ({status})"
 
 
 class FuelRecord(models.Model):
@@ -348,17 +348,17 @@ class FuelRecord(models.Model):
         ordering = ['-refuel_date']
 
     def __str__(self):
-        return f"{self.fuel_id} — {self.vehicle_id} | {self.litres_added}L on {self.refuel_date}"
+        return f"{self.fuel_id}- {self.vehicle_id} | {self.litres_added}L on {self.refuel_date}"
 
 
 # ============================================================
-#  PART C — ML OUTPUT TABLE
+#  PART C- ML OUTPUT TABLE
 #  managed = False: written by run_inference.py, not Django migrations
 # ============================================================
 
 class HealthScores(models.Model):
     """
-    ML pipeline output — health predictions written by run_inference.py.
+    ML pipeline output- health predictions written by run_inference.py.
     Django uses managed=False so migrations never touch this table.
     """
 
@@ -390,7 +390,7 @@ class HealthScores(models.Model):
 
     class Meta:
         db_table = 'health_scores'
-        managed  = False          # ML pipeline owns this table — no Django migrations
+        managed  = False          # ML pipeline owns this table- no Django migrations
         ordering = ['-assessment_date']
 
     def __str__(self):

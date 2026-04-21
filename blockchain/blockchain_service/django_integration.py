@@ -1,5 +1,5 @@
 """
-django_integration.py  —  Drop-in helper for the Django backend teammate.
+django_integration.py -  Drop-in helper for the Django backend teammate.
 
 SETUP:
   1. Copy the entire `blockchain_service/` folder into your Django project root.
@@ -138,7 +138,7 @@ class BlockchainBridge:
         return results
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 1 — RECORD ACTIONS (called from Django views)
+    #  LAYER 1- RECORD ACTIONS (called from Django views)
     # ══════════════════════════════════════════════════════
 
     def record_vehicle_action(
@@ -237,7 +237,7 @@ class BlockchainBridge:
             return {"success": False, "error": str(e)}
 
     # ══════════════════════════════════════════════════════
-    #  LAYER 2 — AUDIT + ML  (called after MySQL + ML)
+    #  LAYER 2- AUDIT + ML  (called after MySQL + ML)
     # ══════════════════════════════════════════════════════
 
     def record_audit_entry(
@@ -375,7 +375,7 @@ class BlockchainBridge:
         return results
 
     # ══════════════════════════════════════════════════════
-    #  READ — for Dashboard / API views
+    #  READ- for Dashboard / API views
     # ══════════════════════════════════════════════════════
 
     def get_vehicle_history(self, vehicle_number: str) -> list:

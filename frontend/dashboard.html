@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AVMS - Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth-guard.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -61,8 +62,11 @@
                 <div class="page-header">
                     <h1>Dashboard</h1>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <span class="badge" id="currentBase">All Bases</span>
+                        <span class="badge" id="currentBase">Scope: All Bases</span>
                         <span class="badge" id="dataSourceBadge">Data Source: Local demo cache</span>
+                        <span class="badge" id="mlFreshnessBadge">ML: Unknown</span>
+                        <button class="btn btn-secondary btn-sm" id="clearMapFilterBtn" style="display: none;">Clear Base Scope</button>
+                        <button class="btn btn-primary btn-sm" id="triggerMlBtn" style="display: none;">Run ML Inference</button>
                     </div>
                 </div>
 
@@ -120,6 +124,37 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="table-container ml-table-container">
+                    <div class="table-header">
+                        <h3>Latest ML Predictions</h3>
+                        <span class="badge" id="mlPanelMeta">No ML run details yet</span>
+                    </div>
+                    <div class="ml-run-output" id="mlRunOutputWrap" style="display: none;">
+                        <h4>Latest ML Run Output</h4>
+                        <pre id="mlRunOutput"></pre>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vehicle</th>
+                                <th>Base</th>
+                                <th>Health</th>
+                                <th>Risk</th>
+                                <th>Score</th>
+                                <th>Days To Service</th>
+                                <th>Recommended Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mlPredictionsBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                    Run ML inference to view predictions.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <!-- ========== MAP PAGE ========== -->
@@ -153,6 +188,7 @@
                                 <option value="Active">Active</option>
                                 <option value="Under Maintenance">Under Maintenance</option>
                                 <option value="Service Due">Service Due</option>
+                                <option value="Decommissioned">Decommissioned</option>
                             </select>
                             <select id="vehicleBaseFilter">
                                 <option value="">All Bases</option>
@@ -192,9 +228,14 @@
                             <input type="text" id="maintenanceSearch" placeholder="Search by vehicle or technician...">
                             <select id="maintenanceTypeFilter">
                                 <option value="">All Types</option>
+                                <option value="Preventive">Preventive</option>
+                                <option value="Corrective">Corrective</option>
                                 <option value="Scheduled Service">Scheduled Service</option>
                                 <option value="Repair">Repair</option>
                                 <option value="Inspection">Inspection</option>
+                            </select>
+                            <select id="maintenanceBaseFilter">
+                                <option value="">All Bases</option>
                             </select>
                         </div>
                     </div>
@@ -238,6 +279,9 @@
                                 <option value="Brakes">Brakes</option>
                                 <option value="Tires">Tires</option>
                                 <option value="Tracks">Tracks</option>
+                            </select>
+                            <select id="inventoryBaseFilter">
+                                <option value="">All Bases</option>
                             </select>
                         </div>
                     </div>
@@ -304,6 +348,7 @@
                         <label for="vehicleNextService">Next Service Due</label>
                         <input type="date" id="vehicleNextService" required>
                     </div>
+                    <p class="form-help">Tip: For transfer, edit a vehicle and change its base. For removal, use Decommission in the vehicle table.</p>
                 </form>
             </div>
             <div class="modal-footer">
@@ -334,6 +379,8 @@
                     <div class="form-group">
                         <label for="maintenanceType">Type</label>
                         <select id="maintenanceType" required>
+                            <option value="Preventive">Preventive</option>
+                            <option value="Corrective">Corrective</option>
                             <option value="Scheduled Service">Scheduled Service</option>
                             <option value="Repair">Repair</option>
                             <option value="Inspection">Inspection</option>
@@ -379,28 +426,24 @@
                         <input type="text" id="inventoryName" placeholder="e.g., Engine Oil Filter" required>
                     </div>
                     <div class="form-group">
-                        <label for="inventoryCategory">Category</label>
-                        <select id="inventoryCategory" required>
-                            <option value="Engine">Engine</option>
-                            <option value="Transmission">Transmission</option>
-                            <option value="Electrical">Electrical</option>
-                            <option value="Brakes">Brakes</option>
-                            <option value="Tires">Tires</option>
-                            <option value="Tracks">Tracks</option>
-                            <option value="Misc">Misc</option>
-                        </select>
+                        <label for="inventoryVehicle">Vehicle</label>
+                        <select id="inventoryVehicle" required></select>
                     </div>
                     <div class="form-group">
                         <label for="inventoryQty">Quantity</label>
                         <input type="number" id="inventoryQty" placeholder="0" required>
                     </div>
                     <div class="form-group">
-                        <label for="inventoryMinStock">Minimum Stock Level</label>
-                        <input type="number" id="inventoryMinStock" placeholder="0" required>
+                        <label for="inventoryUnitCost">Unit Cost (₹)</label>
+                        <input type="number" id="inventoryUnitCost" placeholder="0">
                     </div>
                     <div class="form-group">
-                        <label for="inventoryDepot">Depot Location</label>
-                        <input type="text" id="inventoryDepot" placeholder="e.g., Delhi Main Depot" required>
+                        <label for="inventorySupplier">Supplier / Category</label>
+                        <input type="text" id="inventorySupplier" placeholder="e.g., Engine">
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryRecordId">Linked Maintenance Record (optional)</label>
+                        <input type="text" id="inventoryRecordId" placeholder="e.g., MR001234">
                     </div>
                 </form>
             </div>

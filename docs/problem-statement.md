@@ -6,17 +6,17 @@
 
 ## The Problem
 
-Modern military fleets run scheduled maintenance intervals — fixed odometer or calendar-based service windows — regardless of actual vehicle condition. This creates two critical failure modes:
+Modern military fleets run scheduled maintenance intervals- fixed odometer or calendar-based service windows- regardless of actual vehicle condition. This creates two critical failure modes:
 
 | Failure Mode | Consequence |
 |---|---|
-| **Under-servicing** | A vehicle with degraded sensors, active DTCs, and high operational stress misses its service interval — and fails during a critical mission |
+| **Under-servicing** | A vehicle with degraded sensors, active DTCs, and high operational stress misses its service interval- and fails during a critical mission |
 | **Over-servicing** | A vehicle in excellent condition gets pulled for unnecessary maintenance, reducing operational availability |
 
 Additionally, when a fleet vehicle does fail:
 - Diagnostic codes exist in the system but are **not algorithmically linked** to maintenance decisions
 - Fuel efficiency degradation is tracked per transaction but **never aggregated** to predict imminent failure
-- Thermal variance in coolant temperature — an early failure indicator — **goes undetected** until the engine overheats
+- Thermal variance in coolant temperature- an early failure indicator- **goes undetected** until the engine overheats
 
 ---
 
@@ -78,7 +78,7 @@ During synthetic data generation, failure probabilities for each vehicle compone
 P(failure) = 1 − exp(−(km / scale)^shape)
 ```
 
-This matches real-world component wear physics — rare early failures (infant mortality), increasing mid-life failure rate, and an upper wear-out bound — rather than a simple linear probability model.
+This matches real-world component wear physics- rare early failures (infant mortality), increasing mid-life failure rate, and an upper wear-out bound- rather than a simple linear probability model.
 
 ### Why Union Probability for Overall Failure?
 
@@ -97,7 +97,7 @@ Naive summation of individual probabilities can exceed 1.0 for vehicles with man
 
 ### Why SMOTE per fold (not global)?
 
-Applying SMOTE globally before cross-validation splits would cause **data leakage** — synthetic minority samples from training data would contaminate validation folds. Per-fold SMOTE generates synthetic samples only within each training split.
+Applying SMOTE globally before cross-validation splits would cause **data leakage**- synthetic minority samples from training data would contaminate validation folds. Per-fold SMOTE generates synthetic samples only within each training split.
 
 ---
 

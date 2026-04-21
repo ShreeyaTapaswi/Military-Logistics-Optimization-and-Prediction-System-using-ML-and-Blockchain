@@ -50,7 +50,7 @@ contract("AssetLedger (Layer 1)", (accounts) => {
 
   it("Base Admin 1 CAN write to their own base (JODHPUR_AFB)", async () => {
     const tx = await ledger.addVehicleMovement(
-      "JODHPUR_AFB",         // base_id — matches admin1's registered base
+      "JODHPUR_AFB",         // base_id- matches admin1's registered base
       "MH-12-AB-1234",
       1,                     // REMOVAL
       -2,
@@ -66,14 +66,14 @@ contract("AssetLedger (Layer 1)", (accounts) => {
   it("Base Admin 1 CANNOT write to another base (MUMBAI_NB)", async () => {
     try {
       await ledger.addVehicleMovement(
-        "MUMBAI_NB",           // WRONG base — admin1 is registered for JODHPUR
+        "MUMBAI_NB",           // WRONG base- admin1 is registered for JODHPUR
         "MH-99-ZZ-0000",
         0,
         1,
         "Should fail",
         { from: baseAdmin1 }
       );
-      assert.fail("Should have thrown — writing to wrong base");
+      assert.fail("Should have thrown- writing to wrong base");
     } catch (err) {
       assert(
         err.message.includes("Base Admin can only write to own base"),
@@ -231,7 +231,7 @@ contract("AssetLedger (Layer 1)", (accounts) => {
         "MUMBAI_NB", "MH-01-XX-0000", 0, 1, "Should fail",
         { from: baseAdmin2 }
       );
-      assert.fail("Should have thrown — admin was revoked");
+      assert.fail("Should have thrown- admin was revoked");
     } catch (err) {
       assert(err.message.includes("Not authorised"));
     }

@@ -1,4 +1,4 @@
-# 📊 Attribute-Level ER Diagram — MLOPS
+# 📊 Attribute-Level ER Diagram- MLOPS
 
 This document provides a highly detailed Entity Relationship (ER) Diagram for the Military Logistics Optimization & Prediction System (`mlops_db`). It includes every attribute, primary key (PK), foreign key (FK), and data type as defined in `schema.sql`.
 

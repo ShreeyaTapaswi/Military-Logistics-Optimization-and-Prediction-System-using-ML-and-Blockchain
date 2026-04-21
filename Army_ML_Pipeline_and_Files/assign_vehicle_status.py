@@ -105,7 +105,7 @@ def main():
         print("      Column added successfully.")
     except mysql.connector.Error as e:
         if 'Duplicate column' in str(e):
-            print("      Column already exists — resetting values.")
+            print("      Column already exists- resetting values.")
             cursor.execute("UPDATE maintainance_record SET vehicle_status = NULL")
             conn.commit()
         else:

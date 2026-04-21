@@ -10,7 +10,7 @@ class VehicleRepository:
         state: Optional[str] = None,
         limit: int = 100,
     ):
-        queryset = Vehicle.objects.all().order_by("vehicle_id")
+        queryset = Vehicle.objects.all().order_by("-created_at", "-updated_at", "vehicle_id")
 
         if status:
             queryset = queryset.filter(operational_status=status)

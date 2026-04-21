@@ -1,5 +1,5 @@
 """
-end_to_end_demo.py  —  Full-flow demonstration script.
+end_to_end_demo.py -  Full-flow demonstration script.
 
 Run this AFTER deploying contracts to Ganache:
     cd blockchain
@@ -27,7 +27,7 @@ from blockchain_service.utils import compute_data_hash
 
 def main():
     print("=" * 70)
-    print("  MILITARY BASE ASSET TRACKING — BLOCKCHAIN END-TO-END DEMO")
+    print("  MILITARY BASE ASSET TRACKING- BLOCKCHAIN END-TO-END DEMO")
     print("=" * 70)
 
     # ── 1. Connect ──────────────────────────────────────────────
@@ -61,7 +61,7 @@ def main():
     print("  SCENARIO: Base Admin removes 2 vehicles from JODHPUR_AFB")
     print("─" * 70)
 
-    # ── 4. Layer 1 — Record Vehicle Movement ────────────────────
+    # ── 4. Layer 1- Record Vehicle Movement ────────────────────
     print("\n[4] LAYER 1 → Recording vehicle removal on blockchain...")
     vehicle_result = bc.add_vehicle_movement(
         admin_address=base_admin_addr,
@@ -105,7 +105,7 @@ def main():
     }
     print(f"    ✓ ML says: {ml_output['description'][:60]}...")
 
-    # ── 7. Layer 2 — Audit Log ──────────────────────────────────
+    # ── 7. Layer 2- Audit Log ──────────────────────────────────
     print("\n[7] LAYER 2 → Logging audit entry on blockchain...")
     audit_result = bc.log_audit_entry(
         base_id="JODHPUR_AFB",
@@ -120,7 +120,7 @@ def main():
     print(f"    ✓ TX Hash:        {audit_result['tx_hash'][:16]}...")
     print(f"    ✓ Status:         {audit_result['status']}")
 
-    # ── 8. Layer 2 — ML Prediction ──────────────────────────────
+    # ── 8. Layer 2- ML Prediction ──────────────────────────────
     print("\n[8] LAYER 2 → Storing ML prediction on blockchain...")
     pred_result = bc.store_ml_prediction(
         base_id="JODHPUR_AFB",
@@ -143,7 +143,7 @@ def main():
     print("  SCENARIO 2: Spare part usage & maintenance log")
     print("─" * 70)
 
-    # ── 9. Layer 1 — Spare Part Movement ────────────────────────
+    # ── 9. Layer 1- Spare Part Movement ────────────────────────
     print("\n[9] LAYER 1 → Recording spare part removal...")
     spare_result = bc.add_spare_part_movement(
         admin_address=base_admin_addr,        base_id="JODHPUR_AFB",        part_code="BRK-PAD-TATA-407",
@@ -154,7 +154,7 @@ def main():
     )
     print(f"    ✓ Entry ID: {spare_result['entry_id']}  Status: {spare_result['status']}")
 
-    # ── 10. Layer 1 — Maintenance Record ────────────────────────
+    # ── 10. Layer 1- Maintenance Record ────────────────────────
     print("\n[10] LAYER 1 → Recording maintenance log...")
     maint_result = bc.add_maintenance_record(
         admin_address=base_admin_addr,        base_id="JODHPUR_AFB",        vehicle_number="MH-12-AB-1234",
@@ -165,7 +165,7 @@ def main():
     print(f"    ✓ Entry ID: {maint_result['entry_id']}  Status: {maint_result['status']}")
 
     # ══════════════════════════════════════════════════════════════
-    #  QUERIES — Read from blockchain
+    #  QUERIES- Read from blockchain
     # ══════════════════════════════════════════════════════════════
 
     print("\n" + "─" * 70)
@@ -223,7 +223,7 @@ def main():
     # ══════════════════════════════════════════════════════════════
 
     print("\n" + "─" * 70)
-    print("  SCENARIO 3: ACCESS CONTROL — Base Admin vs Super Admin")
+    print("  SCENARIO 3: ACCESS CONTROL- Base Admin vs Super Admin")
     print("─" * 70)
 
     # Register a second base
@@ -231,7 +231,7 @@ def main():
     bc.register_base_admin("MUMBAI_NB", base_admin2_addr)
     print(f"\n[17] Registered Base Admin for MUMBAI_NB: {base_admin2_addr[:10]}...")
 
-    # Base Admin 2 writes to THEIR base — should succeed
+    # Base Admin 2 writes to THEIR base- should succeed
     print("\n[18] Base Admin 2 writes to MUMBAI_NB (their base)... ", end="")
     try:
         result = bc.add_vehicle_movement(
@@ -242,11 +242,14 @@ def main():
             quantity_change=3,
             reason="New vehicles received from depot",
         )
-        print(f"✓ ALLOWED (entry #{result['entry_id']})")
+        if result.get("status") == "VALIDATED":
+            print(f"✓ ALLOWED (entry #{result['entry_id']})")
+        else:
+            print(f"✗ BLOCKED (status={result.get('status')})")
     except Exception as e:
-        print(f"✗ BLOCKED — {e}")
+        print(f"✗ BLOCKED- {e}")
 
-    # Base Admin 2 tries to write to JODHPUR — should FAIL
+    # Base Admin 2 tries to write to JODHPUR- should FAIL
     print("[19] Base Admin 2 writes to JODHPUR_AFB (NOT their base)... ", end="")
     try:
         result = bc.add_vehicle_movement(
@@ -257,11 +260,14 @@ def main():
             quantity_change=1,
             reason="Attempt to write to wrong base",
         )
-        print(f"✗ SHOULD HAVE BEEN BLOCKED!")
+        if result.get("status") == "VALIDATED":
+            print(f"✗ SHOULD HAVE BEEN BLOCKED! status={result.get('status')}")
+        else:
+            print(f"✓ CORRECTLY BLOCKED by smart contract! status={result.get('status')}")
     except Exception as e:
         print(f"✓ CORRECTLY BLOCKED by smart contract!")
 
-    # Super Admin writes to MUMBAI — should succeed
+    # Super Admin writes to MUMBAI- should succeed
     print("[20] Super Admin writes to MUMBAI_NB (any base)... ", end="")
     try:
         result = bc.add_vehicle_movement(
@@ -272,11 +278,14 @@ def main():
             quantity_change=2,
             reason="Emergency allocation from HQ",
         )
-        print(f"✓ ALLOWED (entry #{result['entry_id']})")
+        if result.get("status") == "VALIDATED":
+            print(f"✓ ALLOWED (entry #{result['entry_id']})")
+        else:
+            print(f"✗ BLOCKED (status={result.get('status')})")
     except Exception as e:
-        print(f"✗ BLOCKED — {e}")
+        print(f"✗ BLOCKED- {e}")
 
-    # Super Admin writes to JODHPUR — should succeed
+    # Super Admin writes to JODHPUR- should succeed
     print("[21] Super Admin writes to JODHPUR_AFB (any base)... ", end="")
     try:
         result = bc.add_vehicle_movement(
@@ -287,9 +296,12 @@ def main():
             quantity_change=10,
             reason="Major fleet replenishment ordered by HQ",
         )
-        print(f"✓ ALLOWED (entry #{result['entry_id']})")
+        if result.get("status") == "VALIDATED":
+            print(f"✓ ALLOWED (entry #{result['entry_id']})")
+        else:
+            print(f"✗ BLOCKED (status={result.get('status')})")
     except Exception as e:
-        print(f"✗ BLOCKED — {e}")
+        print(f"✗ BLOCKED- {e}")
 
     print("\n    Summary:")
     print("    ┌───────────────────┬────────────┬────────────┐")
@@ -301,7 +313,7 @@ def main():
     print("    └───────────────────┴────────────┴────────────┘")
 
     print("\n" + "=" * 70)
-    print("  DEMO COMPLETE — All blockchain operations successful!")
+    print("  DEMO COMPLETE- All blockchain operations successful!")
     print("=" * 70)
 
 

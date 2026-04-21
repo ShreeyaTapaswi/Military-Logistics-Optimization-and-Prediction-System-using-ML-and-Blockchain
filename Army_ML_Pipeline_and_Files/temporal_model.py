@@ -8,7 +8,7 @@ from db_connector import DB_CONFIG
 
 SEQUENCE_LENGTH = 50
 
-# Named columns — aligned to v_ml_telemetry_input view output
+# Named columns- aligned to v_ml_telemetry_input view output
 # No more column index dependency (fixes column index warning in ML doc)
 FEATURE_COLS = [
     'engine_coolant_temp_celsius',
@@ -53,7 +53,7 @@ def extract_sequences():
     sequences = []
 
     for i, vid in enumerate(vehicle_ids):
-        # Query via v_ml_telemetry_input view — named columns, no index dependency
+        # Query via v_ml_telemetry_input view- named columns, no index dependency
         query = """
             SELECT
                 engine_coolant_temp_celsius,

@@ -1,4 +1,4 @@
-# 🧠 ML Pipeline — Deep Dive
+# 🧠 ML Pipeline- Deep Dive
 
 ## Military Vehicle Inventory Logistics Optimization and Prediction System
 
@@ -35,11 +35,11 @@ MySQL Database (real Army telemetry)
 
 ---
 
-## Stage 1 — Vehicle Status Label Assignment
+## Stage 1- Vehicle Status Label Assignment
 
 **Script:** `Army_ML_Pipeline_and_Files/assign_vehicle_status.py`
 
-The pipeline uses **outcome-derived labels** — labels are computed from actual service events and DTC fault severity, not from sensor readings. This prevents target leakage.
+The pipeline uses **outcome-derived labels**- labels are computed from actual service events and DTC fault severity, not from sensor readings. This prevents target leakage.
 
 ### Label Classes (Ordinal, 5-class)
 
@@ -79,10 +79,10 @@ health_score = svc_score − 0.50×dtc_pen − 0.12×major_pen
 
 ---
 
-## Stage 2 — Feature Engineering
+## Stage 2- Feature Engineering
 
 **Script:** `Army_ML_Pipeline_and_Files/feature_engineering.py`  
-**Output:** `vehicle_features.parquet` — 5,000 rows × ~59 columns
+**Output:** `vehicle_features.parquet`- 5,000 rows × ~59 columns
 
 ### Feature Groups
 
@@ -114,17 +114,17 @@ Three neural passes run after SQL aggregation:
    Gradient-based saliency computed (sum of |∂output/∂input| per feature).  
    Top-4 high-variance layer-1 neurons saved as `neural_interaction_0…3`.
 
-3. **MC Dropout uncertainty** — 30 stochastic forward passes, std of softmax outputs → `neural_uncertainty`.
+3. **MC Dropout uncertainty**- 30 stochastic forward passes, std of softmax outputs → `neural_uncertainty`.
 
 ---
 
-## Stage 3 — Model Training
+## Stage 3- Model Training
 
 **Script:** `Army_ML_Pipeline_and_Files/train_health_model.py`
 
 Three base classifiers trained via **5-fold stratified OOF** with SMOTE applied per fold (preventing leakage):
 
-### Model 1 — XGBoost
+### Model 1- XGBoost
 
 | Parameter | Value | Source |
 |---|---|---|
@@ -138,7 +138,7 @@ Three base classifiers trained via **5-fold stratified OOF** with SMOTE applied 
 | `colsample_bytree` | **0.960** | Optuna |
 | `tree_method` | `hist` | Fixed (CPU efficient) |
 
-### Model 2 — LightGBM
+### Model 2- LightGBM
 
 | Parameter | Value |
 |---|---|
@@ -149,7 +149,7 @@ Three base classifiers trained via **5-fold stratified OOF** with SMOTE applied 
 | `min_child_samples` | **68** |
 | `reg_alpha` | **9.879** |
 
-### Model 3 — TabNet
+### Model 3- TabNet
 
 | Parameter | Value |
 |---|---|
@@ -168,7 +168,7 @@ Three base classifiers trained via **5-fold stratified OOF** with SMOTE applied 
 
 ---
 
-## Stage 4 — Temporal Channel (Bi-LSTM)
+## Stage 4- Temporal Channel (Bi-LSTM)
 
 **Script:** `Army_ML_Pipeline_and_Files/temporal_model.py`
 
@@ -194,7 +194,7 @@ Output `temporal_probs.npy` contributes **15% weight** in Stage 6 ensemble fusio
 
 ---
 
-## Stage 5 — Ensemble Optimisation
+## Stage 5- Ensemble Optimisation
 
 **Script:** `Army_ML_Pipeline_and_Files/optimize_ensemble.py`
 
@@ -225,10 +225,10 @@ T* = argmin_T  −mean(log(P_true))
 
 ---
 
-## Stage 6 — Inference
+## Stage 6- Inference
 
 **Script:** `Army_ML_Pipeline_and_Files/run_inference.py`  
-**Output:** `health_scores` MySQL table — 5,000 rows
+**Output:** `health_scores` MySQL table- 5,000 rows
 
 ### Health Score Formula
 
@@ -266,7 +266,7 @@ evidence = "High Thermal Stress Index (Z=2.3), Low Min Voltage (Z=-1.9), ..."
 
 ---
 
-## Stage 7 — Evaluation
+## Stage 7- Evaluation
 
 **Script:** `Army_ML_Pipeline_and_Files/evaluate_ensemble.py`
 
@@ -279,8 +279,8 @@ evidence = "High Thermal Stress Index (Z=2.3), Low Min Voltage (Z=-1.9), ..."
 | Macro AUC-ROC | **>0.97** | One-vs-Rest across 5 classes |
 
 **Outputs:**
-- `reports/ensemble_evaluation_detailed.txt` — full per-class classification report
-- `reports/ensemble_roc_curve.png` — 5-class ROC curves with AUC values
+- `reports/ensemble_evaluation_detailed.txt`- full per-class classification report
+- `reports/ensemble_roc_curve.png`- 5-class ROC curves with AUC values
 
 ---
 

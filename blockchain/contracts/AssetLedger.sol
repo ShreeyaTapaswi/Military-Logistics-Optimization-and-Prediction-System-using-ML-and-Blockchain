@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /**
  * ============================================================
- *  LAYER 1  —  ASSET LEDGER  (Entry Validation & Recording)
+ *  LAYER 1 -  ASSET LEDGER  (Entry Validation & Recording)
  * ============================================================
  *
  * Every action a Base Admin or Super Admin performs (vehicle movement,
@@ -20,7 +20,7 @@ pragma solidity ^0.8.19;
  * entry, and emits an event that the Django backend listens for as
  * confirmation before persisting to MySQL.
  *
- * Designed for a Ganache private network — gas costs are irrelevant.
+ * Designed for a Ganache private network- gas costs are irrelevant.
  */
 
 contract AssetLedger {
@@ -206,7 +206,7 @@ contract AssetLedger {
     /**
      * @dev Resolve which base a record belongs to.
      *      Super Admin must provide a valid _baseId.
-     *      Base Admin's _baseId is ignored — their registered base is used.
+     *      Base Admin's _baseId is ignored- their registered base is used.
      */
     function _resolveBaseHash(string calldata _baseId)
         internal view
@@ -222,7 +222,7 @@ contract AssetLedger {
         }
     }
 
-    // ═══════════ LAYER 1 — VEHICLE MOVEMENTS ═══════════
+    // ═══════════ LAYER 1- VEHICLE MOVEMENTS ═══════════
 
     /**
      * @notice Record a vehicle addition / removal / transfer.
@@ -278,7 +278,7 @@ contract AssetLedger {
         return movementId;
     }
 
-    // ═══════════ LAYER 1 — SPARE PART MOVEMENTS ═══════════
+    // ═══════════ LAYER 1- SPARE PART MOVEMENTS ═══════════
 
     /**
      * @notice Record a spare-part stock change.
@@ -331,7 +331,7 @@ contract AssetLedger {
         return movementId;
     }
 
-    // ═══════════ LAYER 1 — MAINTENANCE RECORDS ═══════════
+    // ═══════════ LAYER 1- MAINTENANCE RECORDS ═══════════
 
     /**
      * @notice Log a maintenance activity for a vehicle.

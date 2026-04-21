@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 try:
@@ -27,6 +28,26 @@ def get_env(name: str, default: str = "") -> str:
 def get_env_bool(name: str, default: bool = False) -> bool:
     raw = get_env(name, str(default))
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def resolve_ml_python_executable() -> str:
+    """
+    Prefer explicit env override, then project virtualenv, then current interpreter.
+    This keeps ML inference aligned with the backend runtime environment.
+    """
+    configured = get_env("ML_PYTHON_EXECUTABLE", "").strip()
+    if configured:
+        return configured
+
+    windows_venv_python = BASE_DIR / ".venv" / "Scripts" / "python.exe"
+    if windows_venv_python.exists():
+        return str(windows_venv_python)
+
+    unix_venv_python = BASE_DIR / ".venv" / "bin" / "python"
+    if unix_venv_python.exists():
+        return str(unix_venv_python)
+
+    return str(sys.executable or "python")
 
 
 SECRET_KEY = get_env(
@@ -134,7 +155,7 @@ CORS_ALLOW_CREDENTIALS = False
 BLOCKCHAIN_ENABLED = get_env_bool("BLOCKCHAIN_ENABLED", True)
 BLOCKCHAIN_STRICT_LAYER1 = get_env_bool("BLOCKCHAIN_STRICT_LAYER1", True)
 ML_PIPELINE_ROOT = BASE_DIR / "Army_ML_Pipeline_and_Files"
-ML_PYTHON_EXECUTABLE = get_env("ML_PYTHON_EXECUTABLE", "python")
+ML_PYTHON_EXECUTABLE = resolve_ml_python_executable()
 
 LOGGING = {
     "version": 1,

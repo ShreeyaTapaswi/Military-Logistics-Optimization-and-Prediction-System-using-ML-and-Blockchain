@@ -114,7 +114,7 @@ def load_artifacts():
             tabnet.load_model(tabnet_path)
             print("  TabNet loaded.")
         except ImportError:
-            print("  [WARN] pytorch-tabnet not installed — skipping TabNet.")
+            print("  [WARN] pytorch-tabnet not installed- skipping TabNet.")
 
     # Temporal Channel (LSTM)
     temporal_probs = None
@@ -225,9 +225,31 @@ def run_inference(xgb, lgbm, tabnet, tabpfn_clf, meta,
 
     # --- Phase 2: Temporal Fusion ---
     if temporal_probs is not None:
-        print("  Applying Temporal Fusion (15% weight)...")
-        # Blend the champion probabilities with the temporal channel
-        final_p = (final_p * 0.85) + (temporal_probs * 0.15)
+        # Blend only when temporal channel shape is compatible with current batch.
+        fusion_channel = None
+        if temporal_probs.ndim == 2 and temporal_probs.shape[1] == final_p.shape[1]:
+            if temporal_probs.shape[0] == final_p.shape[0]:
+                fusion_channel = temporal_probs
+            elif temporal_probs.shape[0] > final_p.shape[0]:
+                print(
+                    f"  [WARN] Temporal rows ({temporal_probs.shape[0]}) > current vehicles "
+                    f"({final_p.shape[0]}). Trimming temporal channel."
+                )
+                fusion_channel = temporal_probs[: final_p.shape[0], :]
+            else:
+                print(
+                    f"  [WARN] Temporal rows ({temporal_probs.shape[0]}) < current vehicles "
+                    f"({final_p.shape[0]}). Skipping temporal fusion."
+                )
+        else:
+            print(
+                f"  [WARN] Temporal channel shape {getattr(temporal_probs, 'shape', None)} "
+                f"incompatible with ensemble shape {final_p.shape}. Skipping temporal fusion."
+            )
+
+        if fusion_channel is not None and fusion_channel.shape == final_p.shape:
+            print("  Applying Temporal Fusion (15% weight)...")
+            final_p = (final_p * 0.85) + (fusion_channel * 0.15)
         
     print(f"  {strategy} applied with Temporal Fusion. Output shape: {final_p.shape}")
     return vehicle_ids, X, final_p
@@ -302,7 +324,7 @@ def write_health_scores(vehicle_ids, final_p, midpoints, uncertainty, evidence):
             today,
             round(health_score, 2),
             h_status,
-            None,    # engine_health_score — future use
+            None,    # engine_health_score- future use
             None,    # transmission_health_score
             None,    # brake_system_score
             None,    # electrical_system_score

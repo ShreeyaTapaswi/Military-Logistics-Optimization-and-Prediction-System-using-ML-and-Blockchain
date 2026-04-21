@@ -1,0 +1,148 @@
+PROJECT OVERVIEW
+Name: Military Logistics Optimization and Prediction System using ML and Blockchain
+Domain: Military logistics, fleet readiness, predictive maintenance, tamper-proof auditing
+Primary Goal: Improve operational readiness through ML predictions and blockchain-backed traceability
+
+ARCHITECTURE SUMMARY
+1. Frontend Layer
+- Technology: HTML, CSS, vanilla JavaScript
+- Main pages: frontend/index.html and frontend/dashboard.html
+- Behavior: Backend-first data fetches through frontend/js/data.js
+- Session: Browser sessionStorage key avms_session
+
+2. Backend Layer
+- Technology: Python, Django, Django REST Framework
+- Project config: mlops_backend
+- App module: backend
+- Style: Repository + Service + Gateway pattern
+- Responsibilities:
+  - Role-based access control for super admin and base admin
+  - CRUD workflows for vehicles, maintenance, inventory
+  - ML trigger and latest prediction status APIs
+  - Blockchain gateway integration for Layer 1 and Layer 2 logging
+
+3. Database Layer
+- Technology: MySQL
+- Schema: database/schema.sql
+- Core entities:
+  - Admin
+  - Vehicle
+  - maintainance_record
+  - spare_parts
+  - health_score_record
+  - health_scores
+  - operational_log
+  - vehicle_telemetry
+  - diagnostic_code
+  - fuel_record
+  - tamper_proof_record
+  - audit_log
+- Seed script: scripts/seed_demo_data.py
+
+4. Blockchain Layer
+- Technology: Solidity, Truffle, Ganache, Web3.py bridge
+- Contracts:
+  - AssetLedger.sol (Layer 1 operational actions)
+  - AuditTrail.sol (Layer 2 audit and ML records)
+- Python bridge location: blockchain/blockchain_service
+- Setup helper: scripts/setup_blockchain_demo.py
+
+5. ML Layer
+- Pipeline location: Army_ML_Pipeline_and_Files
+- Triggered inference file: run_inference.py
+- Backend trigger API: POST /api/ml/run-inference/
+- Latest status API: GET /api/ml/latest/
+
+TECH STACK
+Frontend: HTML5, CSS3, JavaScript, Leaflet, Chart.js
+Backend: Python 3.x, Django, DRF
+Database: MySQL 8+
+Blockchain: Solidity, Truffle, Ganache, Web3.py
+ML: Ensemble models in Python pipeline
+Ops: PowerShell scripts, virtualenv
+
+RBAC MODEL
+Super Admin
+- View all bases
+- Add/remove/edit vehicles across all bases
+- Add/edit/delete inventory and maintenance across all bases
+- Trigger ML inference
+
+Base Admin
+- Edit own base records only
+- View multi-base data per current product behavior where allowed
+- Cannot trigger ML inference
+
+BASE MAP AND BASE COVERAGE
+Current base map has 5 bases:
+1. Delhi
+2. Leh
+3. Pune
+4. Jaisalmer
+5. Kolkata
+Seeded data and base-admin mapping are aligned to these 5 base IDs:
+- base_delhi
+- base_leh
+- base_pune
+- base_jaisalmer
+- base_kolkata
+
+DEMO CREDENTIALS
+Super Admin
+- arjun.sharma / Admin@1234
+
+Base Admins
+- priya.patil / Base@5678 (Pune)
+- rohan.verma / Base@9012 (Delhi)
+- aman.rawat / Base@1122 (Leh)
+- kavya.singh / Base@3456 (Jaisalmer)
+- neha.iyer / Base@7788 (Kolkata)
+
+IMPORTANT API ENDPOINTS
+Auth and health
+- POST /api/auth/login/
+- GET /api/health/
+
+Vehicles
+- GET /api/vehicles/
+- POST /api/vehicles/create/
+- POST /api/vehicles/operate/
+- PUT /api/vehicles/{vehicle_id}/
+- DELETE /api/vehicles/{vehicle_id}/
+
+Maintenance
+- GET /api/maintenance/
+- POST /api/maintenance/
+- PUT /api/maintenance/{record_id}/
+- DELETE /api/maintenance/{record_id}/
+
+Inventory
+- GET /api/inventory/
+- POST /api/inventory/
+- PUT /api/inventory/{part_id}/
+- DELETE /api/inventory/{part_id}/
+
+ML
+- GET /api/ml/latest/
+- POST /api/ml/run-inference/
+
+SECURITY AND SESSION NOTES
+- Protected frontend pages require login-first flow.
+- Direct access to protected frontend page should redirect to login with return path.
+- Backend enforces role checks for critical writes and ML trigger.
+
+RUN CONTEXT NOTES
+- Ganache is required for full blockchain functionality.
+- Without Ganache, blockchain gateway may report not ready and blockchain writes fail or are skipped depending on strict settings and code path.
+- For complete demo parity across teammates, standardize chain host and port to 127.0.0.1:7545 and run migrations before tests.
+
+KNOWN OPERATIONAL PITFALLS
+1. Wrong process on port 8000 can make frontend hit unrelated app.
+2. Not registering base admin wallets on current chain instance breaks expected Layer 1 auth behavior.
+3. ML trigger from frontend needs long request timeout for inference duration.
+4. If Ganache chain is recreated, contracts must be migrated again and base-admin registration repeated.
+
+BEST HANDOFF INSTRUCTION FOR OTHER AI TOOLS
+- Improve docs and UI without changing backend API contracts.
+- Preserve RBAC and blockchain logging workflow.
+- Validate with super admin and base admin test scenarios.

@@ -1,4 +1,4 @@
-# MLOPS — Database Module
+# MLOPS- Database Module
 
 **Military Logistics Optimization & Prediction System**  
 Group G4 | PICT | Dept. of Computer Engineering | 2025–26
@@ -15,18 +15,18 @@ This module contains the complete MySQL database schema for MLOPS, designed from
 
 | Table | Description |
 |---|---|
-| `Admin` | System users — Super Admin & Base Admin |
+| `Admin` | System users- Super Admin & Base Admin |
 | `Vehicle` | Core military vehicle registry |
 | `health_score_record` | ML-generated failure probability & risk scores (ER entity) |
 | `maintainance_record` | All service/repair events per vehicle |
 | `spare_parts` | Spare parts inventory linked to vehicles/maintenance |
-| `tamper_proof_record` | Blockchain anchor table — hash of every critical record |
+| `tamper_proof_record` | Blockchain anchor table- hash of every critical record |
 | `audit_log` | Immutable trail of every user action |
 | `vehicle_telemetry` | Periodic OBD/sensor readings per vehicle |
 | `operational_log` | Mission and trip records per vehicle |
 | `diagnostic_code` | Fault/DTC codes detected per vehicle |
 | `fuel_record` | Refuelling events and efficiency tracking |
-| `health_scores` | ML pipeline output — written by `run_inference.py` |
+| `health_scores` | ML pipeline output- written by `run_inference.py` |
 
 ---
 
@@ -34,7 +34,7 @@ This module contains the complete MySQL database schema for MLOPS, designed from
 
 | View | Purpose |
 |---|---|
-| `v_fleet_health_summary` | Latest health score per vehicle — used by dashboard |
+| `v_fleet_health_summary` | Latest health score per vehicle- used by dashboard |
 | `v_high_risk_vehicles` | Filters High / Critical risk vehicles for alert panel |
 | `v_maintenance_full` | Maintenance history with technician names & ranks |
 | `v_active_faults` | All currently active diagnostic fault codes |
@@ -48,7 +48,7 @@ This module contains the complete MySQL database schema for MLOPS, designed from
 - MySQL 8.0+ (local or cloud)
 - Python 3.10+ with `pymysql`
 
-### Step 1 — Import the schema
+### Step 1- Import the schema
 
 ```bash
 mysql -u root -p < database/schema.sql
@@ -60,18 +60,18 @@ Or inside MySQL shell:
 SOURCE /path/to/database/schema.sql;
 ```
 
-### Step 2 — Verify tables
+### Step 2- Verify tables
 
 ```sql
 USE mlops_db;
 SHOW TABLES;
 ```
 
-### Step 3 — Environment Setup
+### Step 3- Environment Setup
 
 The ML Pipeline and Backend rely on `.env` files for secure access. Ensure you have copied `.env.example` to `.env` in the root folder and configured your `DB_PASSWORD`.
 
-### Step 4 — Run ML Pipeline
+### Step 4- Run ML Pipeline
 
 The pipeline reads from `vehicle_telemetry` (via `v_ml_telemetry_input` view) and writes results to `health_scores`.
 

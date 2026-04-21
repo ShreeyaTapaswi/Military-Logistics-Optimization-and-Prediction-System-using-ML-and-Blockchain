@@ -1,14 +1,14 @@
 -- ============================================================
---  MLOPS — Military Logistics Optimization & Prediction System
+--  MLOPS- Military Logistics Optimization & Prediction System
 --  MySQL Database Schema v2.0
 --  Group G4 | PICT | Dept. of Computer Engineering | 2025-26
 -- ============================================================
 --  STRUCTURE:
---  PART A — Core Tables      (from approved ER diagram)
---  PART B — Supporting Tables (vehicle operational data)
---  PART C — ML Output Table   (health_scores)
---  PART D — Indexes & Views
---  PART E — Seed Data
+--  PART A- Core Tables      (from approved ER diagram)
+--  PART B- Supporting Tables (vehicle operational data)
+--  PART C- ML Output Table   (health_scores)
+--  PART D- Indexes & Views
+--  PART E- Seed Data
 -- ============================================================
 
 DROP DATABASE IF EXISTS mlops_db;
@@ -22,7 +22,7 @@ USE mlops_db;
 -- ============================================================
 
 -- A1. Admin
---     ER: Admin — f_name, l_name, user_id, phone_no, rank
+--     ER: Admin- f_name, l_name, user_id, phone_no, rank
 CREATE TABLE Admin (
     user_id       VARCHAR(20)  NOT NULL,
     f_name        VARCHAR(50)  NOT NULL,
@@ -35,11 +35,11 @@ CREATE TABLE Admin (
     is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id)
-) ENGINE=InnoDB COMMENT='System users — Super Admin and Base Admin';
+) ENGINE=InnoDB COMMENT='System users- Super Admin and Base Admin';
 
 
 -- A2. Vehicle
---     ER: Vehicle — vehicle_id(PK), vehicle_no, type, model,
+--     ER: Vehicle- vehicle_id(PK), vehicle_no, type, model,
 --         manufacture_date, vehicle_age(derived),
 --         location composite: city, state, Pincode
 CREATE TABLE Vehicle (
@@ -61,7 +61,7 @@ CREATE TABLE Vehicle (
 
 
 -- A3. health_score_record
---     ER: health_score_record — health_score_id(PK),
+--     ER: health_score_record- health_score_id(PK),
 --         failure_probability, risk_score, date
 --         Vehicle "Generates" → stored in tamper_proof_record
 CREATE TABLE health_score_record (
@@ -77,7 +77,7 @@ CREATE TABLE health_score_record (
 
 
 -- A4. maintainance_record  (spelling kept as per ER diagram)
---     ER: maintainance_record — record_id(PK), service_date,
+--     ER: maintainance_record- record_id(PK), service_date,
 --         cost, outcome
 --         Vehicle "has" → stored in tamper_proof_record
 CREATE TABLE maintainance_record (
@@ -99,7 +99,7 @@ CREATE TABLE maintainance_record (
 
 
 -- A5. spare_parts
---     ER: spare_parts — part_id(PK), part_name, quantity
+--     ER: spare_parts- part_id(PK), part_name, quantity
 --         Vehicle "have" → stored in tamper_proof_record
 CREATE TABLE spare_parts (
     part_id      VARCHAR(30)   NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE spare_parts (
 
 
 -- A6. tamper_proof_record
---     ER: tamper_proof_record — block_id(PK), tamper_tag,
+--     ER: tamper_proof_record- block_id(PK), tamper_tag,
 --         hash, Attribute
 --         Central blockchain anchor; Admin "verifies" it
 CREATE TABLE tamper_proof_record (
@@ -131,11 +131,11 @@ CREATE TABLE tamper_proof_record (
     verified_by   VARCHAR(20)  NULL,
     PRIMARY KEY (block_id),
     FOREIGN KEY (verified_by) REFERENCES Admin(user_id) ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB COMMENT='Blockchain anchor — immutable hash store';
+) ENGINE=InnoDB COMMENT='Blockchain anchor- immutable hash store';
 
 
 -- A7. audit_log
---     ER: audit_log — log_id(PK), action
+--     ER: audit_log- log_id(PK), action
 --         Admin "logs" audit_log
 CREATE TABLE audit_log (
     log_id      VARCHAR(30)  NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE audit_log (
 -- ============================================================
 --  PART B: SUPPORTING TABLES
 --  Extend the core ER for real operational data collection.
---  These are NOT ML-specific — they represent records any
+--  These are NOT ML-specific- they represent records any
 --  military logistics system would naturally maintain.
 -- ============================================================
 
@@ -260,7 +260,7 @@ CREATE TABLE health_scores (
     -- Overall prediction
     overall_health_score      FLOAT        NOT NULL,
     health_status             VARCHAR(20)  NOT NULL COMMENT 'critical/poor/fair/good/excellent',
-    -- Subsystem scores (nullable — populated progressively by pipeline)
+    -- Subsystem scores (nullable- populated progressively by pipeline)
     engine_health_score       FLOAT        NULL,
     transmission_health_score FLOAT        NULL,
     brake_system_score        FLOAT        NULL,
@@ -279,7 +279,7 @@ CREATE TABLE health_scores (
     PRIMARY KEY (score_id),
     FOREIGN KEY (vehicle_id)             REFERENCES Vehicle(vehicle_id)                      ON UPDATE CASCADE,
     FOREIGN KEY (health_score_record_id) REFERENCES health_score_record(health_score_id)     ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB COMMENT='ML pipeline output — health predictions written by run_inference.py';
+) ENGINE=InnoDB COMMENT='ML pipeline output- health predictions written by run_inference.py';
 
 
 -- ============================================================
@@ -474,7 +474,7 @@ INSERT INTO audit_log (log_id, user_id, action, entity_type, entity_id, ip_addre
 
 INSERT INTO health_scores (vehicle_id, overall_health_score, health_status, engine_health_score, transmission_health_score, brake_system_score, electrical_system_score, predicted_days_to_service, confidence_level, risk_category, recommended_action, risk_evidence, model_version, health_score_record_id) VALUES
 ('VH001',82.0,'good',    85.0,80.0,88.0,78.0,45,0.91,'low',     'Schedule routine check in 45 days',          'Low failure probability, good maintenance history',        'v1.0','HSR001'),
-('VH002',31.0,'critical',28.0,22.0,40.0,35.0, 2,0.95,'critical','Immediate maintenance — transmission failure','P0218 active, high engine temp, 80% load',                 'v1.0','HSR002'),
+('VH002',31.0,'critical',28.0,22.0,40.0,35.0, 2,0.95,'critical','Immediate maintenance- transmission failure','P0218 active, high engine temp, 80% load',                 'v1.0','HSR002'),
 ('VH003',74.0,'good',    76.0,72.0,80.0,70.0,60,0.88,'low',     'Schedule preventive check in 60 days',       'Stable readings, recent brake service done',               'v1.0','HSR003'),
-('VH004',12.0,'critical',10.0,15.0,18.0,12.0, 0,0.97,'critical','Vehicle grounded — engine failure imminent', 'P0300 active, 90% load, coolant 115C, odometer 52000km',   'v1.0','HSR004'),
-('VH005',55.0,'fair',    58.0,52.0,60.0,50.0,15,0.82,'medium',  'Monitor closely — service within 15 days',  'Battery warning active, ageing vehicle (14 yrs)',          'v1.0','HSR005');
+('VH004',12.0,'critical',10.0,15.0,18.0,12.0, 0,0.97,'critical','Vehicle grounded- engine failure imminent', 'P0300 active, 90% load, coolant 115C, odometer 52000km',   'v1.0','HSR004'),
+('VH005',55.0,'fair',    58.0,52.0,60.0,50.0,15,0.82,'medium',  'Monitor closely- service within 15 days',  'Battery warning active, ageing vehicle (14 yrs)',          'v1.0','HSR005');

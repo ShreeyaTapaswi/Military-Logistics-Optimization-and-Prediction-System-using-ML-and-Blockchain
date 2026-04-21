@@ -3,9 +3,9 @@
 STEP 3: train_health_model.py
 ============================================================
 Trains 4 classification models on vehicle_features.parquet:
-  1. XGBoost  — Bayesian optimization (50 trials, mlogloss)
-  2. LightGBM — Bayesian optimization (50 trials, multi_logloss)
-  3. TabNet   — Bayesian optimization (5 trials)
+  1. XGBoost - Bayesian optimization (50 trials, mlogloss)
+  2. LightGBM- Bayesian optimization (50 trials, multi_logloss)
+  3. TabNet  - Bayesian optimization (5 trials)
 
 Each model generates Out-of-Fold (OOF) predictions for stacking.
 SHAP analysis and feature pruning applied to XGBoost + LightGBM.
@@ -128,7 +128,7 @@ def generate_oof_sklearn(model, X, y, apply_smote=True):
 
         model.fit(X_tr, y_tr)
         oof[val_idx] = model.predict_proba(X_val)
-        print(f"    Fold {fold}/{N_SPLITS} — val F1 macro: "
+        print(f"    Fold {fold}/{N_SPLITS}- val F1 macro: "
               f"{f1_score(y[val_idx], oof[val_idx].argmax(1), average='macro'):.4f}")
 
     return oof
@@ -139,7 +139,7 @@ def generate_oof_sklearn(model, X, y, apply_smote=True):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def tune_xgboost(X, y):
     print(f"\n{'='*60}")
-    print("XGBoost — Bayesian Optimization (50 trials)")
+    print("XGBoost- Bayesian Optimization (50 trials)")
     print(f"{'='*60}")
 
     cv = RepeatedStratifiedKFold(n_splits=N_SPLITS, n_repeats=N_REPEATS,
@@ -218,7 +218,7 @@ def tune_xgboost(X, y):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def tune_lightgbm(X, y):
     print(f"\n{'='*60}")
-    print("LightGBM — Bayesian Optimization (50 trials)")
+    print("LightGBM- Bayesian Optimization (50 trials)")
     print(f"{'='*60}")
 
     def objective(trial):
@@ -292,7 +292,7 @@ def tune_lightgbm(X, y):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def tune_tabnet(X, y):
     print(f"\n{'='*60}")
-    print("TabNet — Bayesian Optimization (5 trials)")
+    print("TabNet- Bayesian Optimization (5 trials)")
     print(f"{'='*60}")
     try:
         from pytorch_tabnet.tab_model import TabNetClassifier
@@ -372,7 +372,7 @@ def tune_tabnet(X, y):
                 batch_size=batch_size,
                 eval_set=[(X_val, y[val_idx])])
         oof_tabnet[val_idx] = clf.predict_proba(X_val)
-        print(f"    Fold {fold}/{N_SPLITS} — val F1 macro: "
+        print(f"    Fold {fold}/{N_SPLITS}- val F1 macro: "
               f"{f1_score(y[val_idx], oof_tabnet[val_idx].argmax(1), average='macro'):.4f}")
 
     # Final model on full data
@@ -442,7 +442,7 @@ def run_shap(xgb_model, X, y, feature_names):
         sv_crit = shap_values[0] if isinstance(shap_values, list) else shap_values[:, :, 0]
         shap.summary_plot(sv_crit, X, feature_names=feature_names,
                           show=False, max_display=15)
-        plt.title('SHAP — Critical class')
+        plt.title('SHAP- Critical class')
         plt.tight_layout()
         plt.savefig(os.path.join(REPORTS_DIR, 'shap_per_class_critical.png'), dpi=120)
         plt.close()
@@ -492,7 +492,7 @@ def save_evaluation(oof_xgb, oof_lgbm, oof_tabnet, y):
     fig, ax = plt.subplots(figsize=(8, 6))
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=STATUS_ORDER)
     disp.plot(ax=ax, colorbar=True, cmap='Blues')
-    ax.set_title('Confusion Matrix — XGBoost OOF')
+    ax.set_title('Confusion Matrix- XGBoost OOF')
     plt.tight_layout()
     plt.savefig(os.path.join(REPORTS_DIR, 'confusion_matrix.png'), dpi=120)
     plt.close()

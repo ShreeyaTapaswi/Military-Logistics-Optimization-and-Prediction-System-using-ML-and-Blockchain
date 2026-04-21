@@ -1,5 +1,5 @@
 """
-config.py  —  Blockchain connection settings.
+config.py -  Blockchain connection settings.
 
 Change these if your Ganache setup differs from defaults.
 """

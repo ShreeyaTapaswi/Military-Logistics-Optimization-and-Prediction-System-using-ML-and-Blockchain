@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /**
  * @title Migrations
- * @dev Truffle migrations helper — keeps track of which migrations have run.
+ * @dev Truffle migrations helper- keeps track of which migrations have run.
  */
 contract Migrations {
     address public owner;

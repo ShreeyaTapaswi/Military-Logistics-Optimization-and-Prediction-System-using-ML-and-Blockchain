@@ -1,5 +1,5 @@
 /**
- * Truffle Configuration — Military Base Asset Tracking System
+ * Truffle Configuration- Military Base Asset Tracking System
  * Connects to Ganache local private Ethereum network.
  *
  * Default Ganache settings:

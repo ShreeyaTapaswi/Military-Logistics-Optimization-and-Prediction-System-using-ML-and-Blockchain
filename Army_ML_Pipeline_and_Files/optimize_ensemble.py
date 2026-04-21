@@ -64,7 +64,7 @@ def load_oof():
         le = pickle.load(f)
 
     import pandas as pd
-    import pyarrow  # noqa — just verify parquet dep
+    import pyarrow  # noqa- just verify parquet dep
     df    = pd.read_parquet(os.path.join(BASE_DIR, 'vehicle_features.parquet'))
     y     = le.transform(df['vehicle_status'].values)
 
@@ -105,7 +105,7 @@ def calibrate_models(oof_xgb, oof_lgbm, oof_tabnet, y):
         temp_scalars[name] = T
         print(f"  {name:8} → T = {T:.4f}")
 
-    # TabPFN is already calibrated — set T=1.0
+    # TabPFN is already calibrated- set T=1.0
     # temp_scalars['tabpfn'] = 1.0
     # print(f"  tabpfn   → T = 1.0 (pre-calibrated by design)")
 

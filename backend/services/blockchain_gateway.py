@@ -49,6 +49,17 @@ class BlockchainGateway:
             "error": self._last_error,
         }
 
+    def get_wallet_by_index(self, index: int) -> str:
+        if not self.enabled or not self.is_ready:
+            return ""
+        try:
+            wallets = self._bridge.get_available_wallets()
+            if index < 0 or index >= len(wallets):
+                return ""
+            return wallets[index]
+        except Exception:
+            return ""
+
     def record_vehicle_movement(
         self,
         wallet_address: str,
@@ -70,6 +81,54 @@ class BlockchainGateway:
             action=movement_type,
             quantity=quantity_change,
             reason=reason,
+        )
+
+    def record_spare_part_movement(
+        self,
+        wallet_address: str,
+        base_id: str,
+        part_code: str,
+        part_name: str,
+        movement_type: str,
+        quantity_change: int,
+        reason: str,
+    ) -> Dict[str, Any]:
+        if not self.enabled:
+            return {"success": False, "error": "BLOCKCHAIN_DISABLED"}
+        if not self.is_ready:
+            return {"success": False, "error": self._last_error or "BLOCKCHAIN_NOT_READY"}
+
+        return self._bridge.record_spare_part_action(
+            wallet_address=wallet_address,
+            base_id=base_id,
+            part_code=part_code,
+            part_name=part_name,
+            action=movement_type,
+            quantity=quantity_change,
+            reason=reason,
+        )
+
+    def record_maintenance_action(
+        self,
+        wallet_address: str,
+        base_id: str,
+        vehicle_number: str,
+        description: str,
+        parts_used: list,
+        cost_estimate: int,
+    ) -> Dict[str, Any]:
+        if not self.enabled:
+            return {"success": False, "error": "BLOCKCHAIN_DISABLED"}
+        if not self.is_ready:
+            return {"success": False, "error": self._last_error or "BLOCKCHAIN_NOT_READY"}
+
+        return self._bridge.record_maintenance_action(
+            wallet_address=wallet_address,
+            base_id=base_id,
+            vehicle_number=vehicle_number,
+            description=description,
+            parts_used=parts_used,
+            cost_estimate=cost_estimate,
         )
 
     def log_audit_entry(

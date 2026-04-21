@@ -35,29 +35,50 @@
 
       <div
         style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-secondary);">
-        <p><strong>Demo Credentials:</strong></p>
-        <p style="margin-top: 8px;">Super Admin: <code>superadmin</code> / <code>admin123</code></p>
-        <p>Delhi Base: <code>delhi_admin</code> / <code>delhi123</code></p>
+        <p><strong>Use database-backed admin credentials</strong></p>
+        <p style="margin-top: 8px;">Login is validated through backend API auth.</p>
       </div>
     </div>
   </div>
 
   <script src="js/data.js"></script>
   <script>
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
+    function getSafeNextPath() {
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next');
+      if (!next || !next.startsWith('/frontend/')) {
+        return 'dashboard.html';
+      }
+      const target = next.replace(/^\/frontend\//, '');
+      if (!target.endsWith('.html') || target.includes('..')) {
+        return 'dashboard.html';
+      }
+      return target;
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
       e.preventDefault();
 
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       const errorMessage = document.getElementById('errorMessage');
+      const button = this.querySelector('button[type="submit"]');
 
-      const user = AppData.authenticateUser(username, password);
+      button.disabled = true;
+      button.textContent = 'Authenticating...';
+      errorMessage.style.display = 'none';
 
-      if (user) {
-        AppData.setSession(user);
+      const result = await AppData.loginWithBackend(username, password);
+
+      button.disabled = false;
+      button.textContent = 'Login';
+
+      if (result.success && result.user) {
+        AppData.setSession(result.user);
         AppData.initializeData();
-        window.location.href = 'dashboard.html';
+        window.location.href = getSafeNextPath();
       } else {
+        errorMessage.textContent = result.error || 'Invalid username or password';
         errorMessage.style.display = 'block';
         setTimeout(() => {
           errorMessage.style.display = 'none';
@@ -67,7 +88,7 @@
 
     // If already logged in, redirect
     if (AppData.getSession()) {
-      window.location.href = 'dashboard.html';
+      window.location.href = getSafeNextPath();
     }
   </script>
 </body>

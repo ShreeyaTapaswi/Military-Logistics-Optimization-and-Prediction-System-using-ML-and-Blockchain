@@ -39,6 +39,7 @@ body {
   background-attachment: fixed;
   line-height: 1.6;
   min-height: 100vh;
+  color: var(--text-primary);
 }
 
 a {
@@ -574,6 +575,11 @@ tbody tr:hover {
   color: var(--warning);
 }
 
+.status-badge.decommissioned {
+  background: rgba(139, 148, 158, 0.25);
+  color: #c9d1d9;
+}
+
 .action-btns {
   display: flex;
   gap: 8px;
@@ -712,6 +718,7 @@ tbody tr:hover {
   box-shadow: var(--shadow);
   animation: slideIn 0.3s ease;
   min-width: 300px;
+  color: var(--text-primary);
 }
 
 .toast.success {
@@ -724,6 +731,107 @@ tbody tr:hover {
 
 .toast.warning {
   border-left: 4px solid var(--warning);
+}
+
+.toast span {
+  color: inherit;
+  white-space: pre-wrap;
+}
+
+.service-tag,
+.table-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.service-tag.preventive,
+.table-badge.good,
+.table-badge.low {
+  background: rgba(35, 134, 54, 0.2);
+  color: #9be9a8;
+}
+
+.service-tag.corrective,
+.table-badge.critical,
+.table-badge.high {
+  background: rgba(248, 81, 73, 0.2);
+  color: #ffb3ad;
+}
+
+.service-tag.scheduled,
+.service-tag.inspection,
+.table-badge.fair,
+.table-badge.medium {
+  background: rgba(210, 153, 34, 0.2);
+  color: #f2cc8f;
+}
+
+.service-tag.repair,
+.table-badge.poor {
+  background: rgba(255, 123, 114, 0.22);
+  color: #ffd1cc;
+}
+
+.table-badge.excellent {
+  background: rgba(88, 166, 255, 0.2);
+  color: #a5d6ff;
+}
+
+.ml-table-container {
+  margin-bottom: 24px;
+}
+
+.ml-run-output {
+  margin: 0 20px 18px;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background: #0b1624;
+}
+
+.ml-run-output h4 {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.ml-run-output pre {
+  margin: 0;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(88, 166, 255, 0.35);
+  background: #0f1d30;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: #edf5ff;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.ml-run-output.error pre {
+  border-color: rgba(248, 81, 73, 0.4);
+  background: #2a1212;
+  color: #ffd9d7;
+}
+
+.ml-run-output.success pre {
+  border-color: rgba(46, 160, 67, 0.4);
+  background: #132618;
+  color: #ddffea;
+}
+
+.form-help {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 @keyframes slideIn {

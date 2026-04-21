@@ -4,6 +4,7 @@ from functools import lru_cache
 from django.conf import settings
 
 from backend.repositories.health_repository import HealthRepository
+from backend.repositories.maintenance_repository import MaintenanceRepository
 from backend.repositories.vehicle_repository import VehicleRepository
 from backend.services.blockchain_gateway import BlockchainGateway
 from backend.services.fleet_service import FleetService
@@ -25,10 +26,12 @@ class ServiceContainer:
 def get_service_container() -> ServiceContainer:
     vehicle_repo = VehicleRepository()
     health_repo = HealthRepository()
+    maintenance_repo = MaintenanceRepository()
 
     fleet_service = FleetService(
         vehicle_repository=vehicle_repo,
         health_repository=health_repo,
+        maintenance_repository=maintenance_repo,
     )
 
     blockchain_gateway = BlockchainGateway(enabled=settings.BLOCKCHAIN_ENABLED)

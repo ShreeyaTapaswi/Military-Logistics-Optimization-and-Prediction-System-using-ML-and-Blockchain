@@ -1,0 +1,5 @@
+# Root requirements for full local demo setup
+# Installs backend API, ML pipeline, and blockchain bridge dependencies.
+-r backend/requirements.txt
+-r Army_ML_Pipeline_and_Files/requirements.txt
+-r blockchain/requirements.txt
