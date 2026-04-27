@@ -1109,8 +1109,8 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x9F160233F73700fD6f2a3BCA43123d20756F2C92",
-      "transactionHash": "0x3308dd034b82969371f0c002e17242925cd7991dfbf0e0f7c0d747e5c5c68321"
+      "address": "0x39c4ed55b5BE91B992564EBA4a5bcf187661FDEf",
+      "transactionHash": "0x085162d8600e5bcc167443fa1ca7b8d28fa34630f586d4acc451f68cd455a9ca"
     },
     "1776780204955": {
       "events": {},
@@ -1120,7 +1120,7 @@
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2026-04-21T14:16:31.579Z",
+  "updatedAt": "2026-04-22T03:54:42.702Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "Truffle migrations helper- keeps track of which migrations have run.",

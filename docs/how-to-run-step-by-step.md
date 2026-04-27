@@ -137,9 +137,8 @@ python scripts\seed_demo_data.py --user root --password root
 ```powershell
 cd C:\Users\Samruddhi\projects\Military-Logistics-Optimization-and-Prediction-System-using-ML-and-Blockchain
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+python -m venv .venv
 . .\.venv\Scripts\Activate.ps1
-
-Start-Service MYSQL80
 .\scripts\preflight_validation.ps1
 
 Push-Location blockchain
